@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 
 // Fix for default marker icons in Next.js
 const defaultIcon = L.icon({
@@ -97,8 +96,9 @@ export default function JuryMap({
       center={center}
       zoom={zoom}
       className="w-full h-full rounded-2xl"
-      style={{ background: '#1e293b' }}
+      style={{ background: '#1e293b', height: '100%', width: '100%', minHeight: '400px' }}
       zoomControl={false}
+      scrollWheelZoom={true}
     >
       <MapUpdater center={center} zoom={zoom} />
 
