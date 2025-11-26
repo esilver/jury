@@ -1,6 +1,6 @@
 'use client'
 
-import { Scale, Bell, Settings } from 'lucide-react'
+import { Scale, Bell, Settings, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 interface HeaderProps {
@@ -17,33 +17,43 @@ export function Header({
   showNotifications = true,
 }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-40 bg-jury-background/80 backdrop-blur-lg border-b border-jury-surface-light">
-      <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
-        <div className="flex items-center gap-2">
+    <header className="sticky top-0 z-50 glass-strong">
+      <div className="flex items-center justify-between h-16 px-4 max-w-lg mx-auto">
+        <div className="flex items-center gap-3">
           {showLogo && (
-            <Link href="/feed" className="flex items-center gap-2">
-              <Scale className="w-6 h-6 text-jury-primary" />
-              <span className="font-bold text-lg">Jury</span>
+            <Link href="/feed" className="flex items-center gap-2.5 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-jury-primary to-jury-secondary rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+                <div className="relative p-2 bg-gradient-to-br from-jury-primary to-jury-secondary rounded-xl">
+                  <Scale className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <span className="font-bold text-xl tracking-tight">
+                <span className="text-gradient-primary">Jury</span>
+              </span>
             </Link>
           )}
           {title && !showLogo && (
-            <h1 className="font-semibold text-lg">{title}</h1>
+            <h1 className="font-semibold text-lg text-white">{title}</h1>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {showNotifications && (
-            <button className="p-2 hover:bg-jury-surface rounded-lg transition-colors touch-target">
-              <Bell className="w-5 h-5" />
+            <button className="icon-btn relative group">
+              <Bell className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-jury-primary rounded-full animate-pulse" />
             </button>
           )}
           {showSettings && (
-            <Link href="/settings" className="p-2 hover:bg-jury-surface rounded-lg transition-colors touch-target">
-              <Settings className="w-5 h-5" />
+            <Link href="/settings" className="icon-btn group">
+              <Settings className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
             </Link>
           )}
         </div>
       </div>
+      {/* Subtle bottom gradient line */}
+      <div className="h-px bg-gradient-to-r from-transparent via-jury-primary/30 to-transparent" />
     </header>
   )
 }

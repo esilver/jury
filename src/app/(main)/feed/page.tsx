@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
 import { FlashcardStack } from '@/components/feed/FlashcardStack'
 import { FeedFilters } from '@/components/feed/FeedFilters'
-import { Loader2 } from 'lucide-react'
+import { Loader2, RefreshCw, Sparkles, Scale } from 'lucide-react'
 import type { PromptWithStats, FeedFilters as FeedFiltersType } from '@/types'
 
 export default function FeedPage() {
@@ -15,7 +16,6 @@ export default function FeedPage() {
   })
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set())
 
-  // Fetch prompts for feed
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['feed', filters],
     queryFn: async () => {
@@ -32,7 +32,6 @@ export default function FeedPage() {
     },
   })
 
-  // Vote mutation
   const voteMutation = useMutation({
     mutationFn: async ({ promptId, value }: { promptId: string; value: number }) => {
       const res = await fetch('/api/votes', {
@@ -48,7 +47,6 @@ export default function FeedPage() {
     },
   })
 
-  // Save prompt mutation
   const saveMutation = useMutation({
     mutationFn: async (promptId: string) => {
       const res = await fetch('/api/saved-prompts', {
@@ -79,38 +77,67 @@ export default function FeedPage() {
     [saveMutation]
   )
 
-  // Filter out skipped and already voted prompts
   const availablePrompts = data?.prompts.filter(
     (p) => !skippedIds.has(p.id) && !p.userVote
   ) || []
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-24">
       <Header />
 
-      <main className="max-w-lg mx-auto px-4 py-4">
-        {/* Filters */}
-        <FeedFilters filters={filters} onFiltersChange={setFilters} />
+      <main className="max-w-lg mx-auto px-4 py-6">
+        {/* Filter Bar */}
+        <div className="flex items-center justify-between mb-6">
+          <FeedFilters filters={filters} onFiltersChange={setFilters} />
+          <button
+            onClick={() => {
+              setSkippedIds(new Set())
+              refetch()
+            }}
+            className="icon-btn"
+          >
+            <RefreshCw className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
 
-        {/* Feed */}
-        <div className="mt-4">
+        {/* Feed Content */}
+        <div className="mt-2">
           {isLoading ? (
-            <div className="flex items-center justify-center h-96">
-              <Loader2 className="w-8 h-8 animate-spin text-jury-primary" />
-            </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center h-[480px] card-base"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-jury-primary/20 rounded-full blur-xl animate-pulse" />
+                <Loader2 className="w-12 h-12 animate-spin text-jury-primary relative" />
+              </div>
+              <p className="mt-4 text-gray-400">Loading prompts...</p>
+            </motion.div>
           ) : availablePrompts.length === 0 ? (
-            <div className="card-base p-8 text-center">
-              <p className="text-gray-400 mb-4">No more prompts to show!</p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card-base p-10 text-center"
+            >
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-jury-primary/20 to-jury-secondary/20 flex items-center justify-center">
+                <Scale className="w-10 h-10 text-jury-primary animate-float" />
+              </div>
+              <h2 className="text-xl font-semibold mb-3 text-white">All caught up!</h2>
+              <p className="text-gray-400 mb-6 max-w-xs mx-auto">
+                You&apos;ve seen all the prompts. Check back later or create your own!
+              </p>
               <button
                 onClick={() => {
                   setSkippedIds(new Set())
                   refetch()
                 }}
-                className="btn-primary"
+                className="btn-primary inline-flex items-center gap-2"
               >
+                <RefreshCw className="w-4 h-4" />
                 Refresh Feed
               </button>
-            </div>
+            </motion.div>
           ) : (
             <FlashcardStack
               prompts={availablePrompts}

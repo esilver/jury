@@ -3,8 +3,21 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
-import { Loader2, Plus, X, Image as ImageIcon, Link as LinkIcon, AlertCircle } from 'lucide-react'
+import {
+  Loader2,
+  Plus,
+  X,
+  Image as ImageIcon,
+  AlertCircle,
+  Sparkles,
+  TrendingUp,
+  List,
+  Send,
+  Video,
+  Link as LinkIcon,
+} from 'lucide-react'
 
 type PromptType = 'STATEMENT' | 'TWO_POLE' | 'MULTI_CHOICE'
 type MultiChoiceMode = 'SINGLE_SELECT' | 'MULTI_SELECT'
@@ -15,6 +28,12 @@ interface SimilarPrompt {
   voteCount: number
   score?: number
 }
+
+const promptTypes = [
+  { value: 'STATEMENT', label: 'Statement', icon: Sparkles, description: 'Agree or disagree' },
+  { value: 'TWO_POLE', label: 'Spectrum', icon: TrendingUp, description: 'Scale between two options' },
+  { value: 'MULTI_CHOICE', label: 'Multiple Choice', icon: List, description: 'Pick from options' },
+] as const
 
 export default function CreatePromptPage() {
   const router = useRouter()
@@ -29,7 +48,6 @@ export default function CreatePromptPage() {
   const [showMediaInput, setShowMediaInput] = useState(false)
   const [debouncedText, setDebouncedText] = useState('')
 
-  // Debounce search text
   useEffect(() => {
     const timer = setTimeout(() => {
       if (text.length >= 3) {
@@ -42,7 +60,6 @@ export default function CreatePromptPage() {
     return () => clearTimeout(timer)
   }, [text])
 
-  // Search for similar prompts
   const { data: similarPrompts } = useQuery({
     queryKey: ['similar-prompts', debouncedText],
     queryFn: async () => {
@@ -54,7 +71,6 @@ export default function CreatePromptPage() {
     enabled: debouncedText.length >= 3,
   })
 
-  // Create mutation
   const createMutation = useMutation({
     mutationFn: async () => {
       const payload: Record<string, unknown> = {
@@ -127,38 +143,43 @@ export default function CreatePromptPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-24">
       <Header title="Create Prompt" showLogo={false} />
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Prompt Type Selector */}
         <div>
-          <label className="block text-sm font-medium mb-2">Prompt Type</label>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { value: 'STATEMENT', label: 'Statement' },
-              { value: 'TWO_POLE', label: 'Spectrum' },
-              { value: 'MULTI_CHOICE', label: 'Multi-Choice' },
-            ].map((type) => (
-              <button
-                key={type.value}
-                onClick={() => setPromptType(type.value as PromptType)}
-                className={`p-3 rounded-lg text-sm font-medium transition-colors ${
-                  promptType === type.value
-                    ? 'bg-jury-primary text-white'
-                    : 'bg-jury-surface hover:bg-jury-surface-light'
-                }`}
-              >
-                {type.label}
-              </button>
-            ))}
+          <label className="block text-sm font-medium text-gray-300 mb-3">Prompt Type</label>
+          <div className="grid grid-cols-3 gap-3">
+            {promptTypes.map((type) => {
+              const Icon = type.icon
+              const isActive = promptType === type.value
+              return (
+                <button
+                  key={type.value}
+                  onClick={() => setPromptType(type.value as PromptType)}
+                  className={`
+                    p-4 rounded-xl text-center transition-all duration-200
+                    ${isActive
+                      ? 'bg-jury-primary/15 border-2 border-jury-primary shadow-glow-primary'
+                      : 'bg-jury-surface-light/40 border-2 border-transparent hover:border-gray-600 hover:bg-jury-surface-light/60'
+                    }
+                  `}
+                >
+                  <Icon className={`w-6 h-6 mx-auto mb-2 ${isActive ? 'text-jury-primary' : 'text-gray-400'}`} />
+                  <span className={`block text-sm font-medium ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                    {type.label}
+                  </span>
+                </button>
+              )
+            })}
           </div>
         </div>
 
         {/* Prompt Text */}
         <div>
-          <label className="block text-sm font-medium mb-2">
-            {promptType === 'STATEMENT' ? 'Statement' : 'Question'}
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            {promptType === 'STATEMENT' ? 'Your Statement' : 'Your Question'}
           </label>
           <textarea
             value={text}
@@ -168,194 +189,248 @@ export default function CreatePromptPage() {
                 ? 'e.g., "Pineapple belongs on pizza"'
                 : 'e.g., "How do you prefer to work?"'
             }
-            className="input-field h-24 resize-none"
+            className="input-field h-28 resize-none"
           />
 
-          {/* Similar Prompts Suggestions */}
-          {similarPrompts && similarPrompts.prompts.length > 0 && (
-            <div className="mt-3 p-3 rounded-lg bg-jury-surface border border-jury-surface-light">
-              <div className="flex items-center gap-2 text-yellow-500 text-sm mb-2">
-                <AlertCircle className="w-4 h-4" />
-                <span>Similar prompts exist:</span>
-              </div>
-              <ul className="space-y-2">
-                {similarPrompts.prompts.map((p) => (
-                  <li key={p.id}>
-                    <button
-                      onClick={() => handleExistingPrompt(p.id)}
-                      className="text-left text-sm text-gray-300 hover:text-white w-full p-2 rounded hover:bg-jury-surface-light transition-colors"
-                    >
-                      {p.text}
-                      <span className="text-gray-500 ml-2">({p.voteCount} votes)</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {/* Similar Prompts Alert */}
+          <AnimatePresence>
+            {similarPrompts && similarPrompts.prompts.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mt-4 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30"
+              >
+                <div className="flex items-center gap-2 text-yellow-400 text-sm font-medium mb-3">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Similar prompts exist</span>
+                </div>
+                <ul className="space-y-2">
+                  {similarPrompts.prompts.map((p) => (
+                    <li key={p.id}>
+                      <button
+                        onClick={() => handleExistingPrompt(p.id)}
+                        className="text-left text-sm text-gray-300 hover:text-white w-full p-3 rounded-lg bg-jury-surface/50 hover:bg-jury-surface transition-colors"
+                      >
+                        {p.text}
+                        <span className="text-gray-500 ml-2 text-xs">({p.voteCount} votes)</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Two-Pole Options */}
-        {promptType === 'TWO_POLE' && (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Left Pole</label>
-              <input
-                type="text"
-                value={poleLeft}
-                onChange={(e) => setPoleLeft(e.target.value)}
-                placeholder="e.g., Never"
-                className="input-field"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Right Pole</label>
-              <input
-                type="text"
-                value={poleRight}
-                onChange={(e) => setPoleRight(e.target.value)}
-                placeholder="e.g., Always"
-                className="input-field"
-              />
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {promptType === 'TWO_POLE' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Left Pole</label>
+                  <input
+                    type="text"
+                    value={poleLeft}
+                    onChange={(e) => setPoleLeft(e.target.value)}
+                    placeholder="e.g., Never"
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Right Pole</label>
+                  <input
+                    type="text"
+                    value={poleRight}
+                    onChange={(e) => setPoleRight(e.target.value)}
+                    placeholder="e.g., Always"
+                    className="input-field"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Multi-Choice Options */}
-        {promptType === 'MULTI_CHOICE' && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Selection Mode</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setMultiChoiceMode('SINGLE_SELECT')}
-                  className={`flex-1 p-2 rounded-lg text-sm transition-colors ${
-                    multiChoiceMode === 'SINGLE_SELECT'
-                      ? 'bg-jury-primary text-white'
-                      : 'bg-jury-surface hover:bg-jury-surface-light'
-                  }`}
-                >
-                  Single Select
-                </button>
-                <button
-                  onClick={() => setMultiChoiceMode('MULTI_SELECT')}
-                  className={`flex-1 p-2 rounded-lg text-sm transition-colors ${
-                    multiChoiceMode === 'MULTI_SELECT'
-                      ? 'bg-jury-primary text-white'
-                      : 'bg-jury-surface hover:bg-jury-surface-light'
-                  }`}
-                >
-                  Multi Select
-                </button>
+        <AnimatePresence>
+          {promptType === 'MULTI_CHOICE' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-5 overflow-hidden"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">Selection Mode</label>
+                <div className="flex gap-3">
+                  {[
+                    { value: 'SINGLE_SELECT', label: 'Single Choice' },
+                    { value: 'MULTI_SELECT', label: 'Multiple Choices' },
+                  ].map((mode) => (
+                    <button
+                      key={mode.value}
+                      onClick={() => setMultiChoiceMode(mode.value as MultiChoiceMode)}
+                      className={`
+                        flex-1 p-3 rounded-xl text-sm font-medium transition-all
+                        ${multiChoiceMode === mode.value
+                          ? 'bg-jury-primary/15 border-2 border-jury-primary text-white'
+                          : 'bg-jury-surface-light/40 border-2 border-transparent text-gray-300 hover:border-gray-600'
+                        }
+                      `}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Choices (2-5)</label>
-              <div className="space-y-2">
-                {choices.map((choice, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={choice}
-                      onChange={(e) => handleChoiceChange(index, e.target.value)}
-                      placeholder={`Option ${index + 1}`}
-                      className="input-field flex-1"
-                    />
-                    {choices.length > 2 && (
-                      <button
-                        onClick={() => handleRemoveChoice(index)}
-                        className="p-3 rounded-lg bg-jury-surface hover:bg-jury-surface-light transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Options <span className="text-gray-500">(2-5)</span>
+                </label>
+                <div className="space-y-3">
+                  {choices.map((choice, index) => (
+                    <div key={index} className="flex gap-3">
+                      <div className="flex-shrink-0 w-8 h-12 flex items-center justify-center text-gray-500 text-sm font-medium">
+                        {index + 1}.
+                      </div>
+                      <input
+                        type="text"
+                        value={choice}
+                        onChange={(e) => handleChoiceChange(index, e.target.value)}
+                        placeholder={`Option ${index + 1}`}
+                        className="input-field flex-1"
+                      />
+                      {choices.length > 2 && (
+                        <button
+                          onClick={() => handleRemoveChoice(index)}
+                          className="icon-btn flex-shrink-0 text-gray-400 hover:text-jury-disapprove"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
 
-                {choices.length < 5 && (
-                  <button
-                    onClick={handleAddChoice}
-                    className="w-full p-3 rounded-lg border-2 border-dashed border-jury-surface-light hover:border-gray-500 transition-colors flex items-center justify-center gap-2 text-gray-400"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Option
-                  </button>
-                )}
+                  {choices.length < 5 && (
+                    <button
+                      onClick={handleAddChoice}
+                      className="w-full p-4 rounded-xl border-2 border-dashed border-gray-600 hover:border-jury-primary hover:bg-jury-primary/5 transition-all flex items-center justify-center gap-2 text-gray-400 hover:text-jury-primary"
+                    >
+                      <Plus className="w-5 h-5" />
+                      Add Option
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Media Attachment */}
         <div>
-          {showMediaInput ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium">Media URL</label>
-                <button
-                  onClick={() => {
-                    setShowMediaInput(false)
-                    setMediaUrl('')
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="flex gap-2 mb-2">
-                {['image', 'video', 'link'].map((type) => (
+          <AnimatePresence mode="wait">
+            {showMediaInput ? (
+              <motion.div
+                key="media-input"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="card-base p-4 space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-300">Add Media</label>
                   <button
-                    key={type}
-                    onClick={() => setMediaType(type as 'image' | 'video' | 'link')}
-                    className={`px-3 py-1 rounded text-sm transition-colors ${
-                      mediaType === type
-                        ? 'bg-jury-primary text-white'
-                        : 'bg-jury-surface hover:bg-jury-surface-light'
-                    }`}
+                    onClick={() => {
+                      setShowMediaInput(false)
+                      setMediaUrl('')
+                    }}
+                    className="icon-btn text-gray-400 hover:text-white"
                   >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                    <X className="w-5 h-5" />
                   </button>
-                ))}
-              </div>
+                </div>
 
-              <input
-                type="url"
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                placeholder="https://..."
-                className="input-field"
-              />
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowMediaInput(true)}
-              className="w-full p-3 rounded-lg border-2 border-dashed border-jury-surface-light hover:border-gray-500 transition-colors flex items-center justify-center gap-2 text-gray-400"
-            >
-              <ImageIcon className="w-4 h-4" />
-              Add Media (optional)
-            </button>
-          )}
+                <div className="flex gap-2">
+                  {[
+                    { type: 'image', icon: ImageIcon },
+                    { type: 'video', icon: Video },
+                    { type: 'link', icon: LinkIcon },
+                  ].map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <button
+                        key={item.type}
+                        onClick={() => setMediaType(item.type as 'image' | 'video' | 'link')}
+                        className={`
+                          flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all
+                          ${mediaType === item.type
+                            ? 'bg-jury-primary/15 border border-jury-primary text-jury-primary'
+                            : 'bg-jury-surface-light/50 border border-transparent text-gray-400 hover:text-white'
+                          }
+                        `}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <input
+                  type="url"
+                  value={mediaUrl}
+                  onChange={(e) => setMediaUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="input-field"
+                />
+              </motion.div>
+            ) : (
+              <motion.button
+                key="media-button"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => setShowMediaInput(true)}
+                className="w-full p-4 rounded-xl border-2 border-dashed border-gray-600 hover:border-jury-primary hover:bg-jury-primary/5 transition-all flex items-center justify-center gap-2 text-gray-400 hover:text-jury-primary"
+              >
+                <ImageIcon className="w-5 h-5" />
+                Add Media (optional)
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Submit Button */}
         <button
           onClick={() => createMutation.mutate()}
           disabled={!isValid() || createMutation.isPending}
-          className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary w-full flex items-center justify-center gap-2.5 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {createMutation.isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
-            'Create Prompt'
+            <>
+              <Send className="w-5 h-5" />
+              Create Prompt
+            </>
           )}
         </button>
 
         {createMutation.error && (
-          <p className="text-jury-disapprove text-sm text-center">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-jury-disapprove text-sm text-center p-3 rounded-xl bg-jury-disapprove/10 border border-jury-disapprove/30"
+          >
             {createMutation.error.message}
-          </p>
+          </motion.p>
         )}
       </main>
     </div>

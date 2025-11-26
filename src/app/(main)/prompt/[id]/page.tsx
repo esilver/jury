@@ -3,7 +3,7 @@
 import { useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Header } from '@/components/layout/Header'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Loader2,
   ArrowLeft,
@@ -13,6 +13,8 @@ import {
   Flag,
   Send,
   MoreHorizontal,
+  X,
+  AlertTriangle,
 } from 'lucide-react'
 
 interface PromptDetails {
@@ -50,7 +52,6 @@ export default function PromptDetailPage({
   const [commentText, setCommentText] = useState('')
   const [showFlagDialog, setShowFlagDialog] = useState(false)
 
-  // Fetch prompt details
   const { data: prompt, isLoading } = useQuery({
     queryKey: ['prompt', promptId],
     queryFn: async () => {
@@ -60,7 +61,6 @@ export default function PromptDetailPage({
     },
   })
 
-  // Fetch comments
   const { data: commentsData } = useQuery({
     queryKey: ['comments', promptId],
     queryFn: async () => {
@@ -74,7 +74,6 @@ export default function PromptDetailPage({
     enabled: !!prompt?.userVote,
   })
 
-  // Vote mutation
   const voteMutation = useMutation({
     mutationFn: async (value: number) => {
       const res = await fetch('/api/votes', {
@@ -91,7 +90,6 @@ export default function PromptDetailPage({
     },
   })
 
-  // Comment mutation
   const commentMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/comments', {
@@ -108,7 +106,6 @@ export default function PromptDetailPage({
     },
   })
 
-  // Comment reaction mutation
   const reactionMutation = useMutation({
     mutationFn: async ({ commentId, value }: { commentId: string; value: number }) => {
       const res = await fetch(`/api/comments/${commentId}/react`, {
@@ -124,7 +121,6 @@ export default function PromptDetailPage({
     },
   })
 
-  // Flag mutation
   const flagMutation = useMutation({
     mutationFn: async (reason: string) => {
       const res = await fetch('/api/flags', {
@@ -142,15 +138,16 @@ export default function PromptDetailPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-jury-primary" />
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-jury-primary" />
+        <p className="mt-4 text-gray-400">Loading prompt...</p>
       </div>
     )
   }
 
   if (!prompt) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <p className="text-gray-400">Prompt not found</p>
       </div>
     )
@@ -159,28 +156,34 @@ export default function PromptDetailPage({
   const hasVoted = !!prompt.userVote
 
   return (
-    <div className="min-h-screen">
-      <div className="sticky top-0 z-40 bg-jury-background/80 backdrop-blur-lg border-b border-jury-surface-light">
-        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
+    <div className="min-h-screen pb-24">
+      {/* Header */}
+      <div className="sticky top-0 z-50 glass-strong">
+        <div className="flex items-center justify-between h-16 px-4 max-w-lg mx-auto">
           <button
             onClick={() => router.back()}
-            className="p-2 -ml-2 hover:bg-jury-surface rounded-lg transition-colors"
+            className="icon-btn -ml-2"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => setShowFlagDialog(true)}
-            className="p-2 -mr-2 hover:bg-jury-surface rounded-lg transition-colors"
+            className="icon-btn -mr-2"
           >
             <MoreHorizontal className="w-5 h-5" />
           </button>
         </div>
+        <div className="h-px bg-gradient-to-r from-transparent via-jury-primary/30 to-transparent" />
       </div>
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Prompt Card */}
-        <div className="card-base p-6">
-          <h1 className="text-2xl font-semibold mb-4">{prompt.text}</h1>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card-base p-6"
+        >
+          <h1 className="text-2xl font-bold text-white mb-4 leading-relaxed">{prompt.text}</h1>
 
           <div className="text-sm text-gray-400 mb-6">
             {prompt.voteCount} vote{prompt.voteCount !== 1 ? 's' : ''}
@@ -188,28 +191,40 @@ export default function PromptDetailPage({
 
           {/* Results (shown after voting) */}
           {hasVoted && (
-            <div className="mb-6">
-              <div className="h-8 flex rounded-lg overflow-hidden">
-                <div
-                  className="bg-jury-disapprove flex items-center justify-center text-sm font-medium"
-                  style={{ width: `${prompt.disapprovePercent}%` }}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6"
+            >
+              <div className="h-12 flex rounded-2xl overflow-hidden shadow-inner">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${prompt.disapprovePercent}%` }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-gradient-to-r from-jury-disapprove to-jury-disapprove-light flex items-center justify-center"
                 >
-                  {prompt.disapprovePercent}%
-                </div>
-                <div
-                  className="bg-jury-approve flex items-center justify-center text-sm font-medium"
-                  style={{ width: `${prompt.approvePercent}%` }}
+                  {prompt.disapprovePercent >= 15 && (
+                    <span className="text-sm font-bold text-white drop-shadow">{prompt.disapprovePercent}%</span>
+                  )}
+                </motion.div>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${prompt.approvePercent}%` }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-gradient-to-r from-jury-approve-light to-jury-approve flex items-center justify-center"
                 >
-                  {prompt.approvePercent}%
-                </div>
+                  {prompt.approvePercent >= 15 && (
+                    <span className="text-sm font-bold text-white drop-shadow">{prompt.approvePercent}%</span>
+                  )}
+                </motion.div>
               </div>
-              <p className="text-center text-sm text-gray-400 mt-2">
+              <p className="text-center text-sm text-gray-400 mt-3">
                 You voted{' '}
-                <span className={(prompt.userVote?.value ?? 0) > 0 ? 'text-jury-approve' : 'text-jury-disapprove'}>
+                <span className={(prompt.userVote?.value ?? 0) > 0 ? 'text-jury-approve font-medium' : 'text-jury-disapprove font-medium'}>
                   {(prompt.userVote?.value ?? 0) > 0 ? 'Approve' : 'Disapprove'}
                 </span>
               </p>
-            </div>
+            </motion.div>
           )}
 
           {/* Vote Buttons */}
@@ -218,7 +233,7 @@ export default function PromptDetailPage({
               <button
                 onClick={() => voteMutation.mutate(-1)}
                 disabled={voteMutation.isPending}
-                className="btn-disapprove flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="btn-disapprove flex-1 flex items-center justify-center gap-2 py-4"
               >
                 <ThumbsDown className="w-5 h-5" />
                 Disapprove
@@ -226,25 +241,26 @@ export default function PromptDetailPage({
               <button
                 onClick={() => voteMutation.mutate(1)}
                 disabled={voteMutation.isPending}
-                className="btn-approve flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="btn-approve flex-1 flex items-center justify-center gap-2 py-4"
               >
                 <ThumbsUp className="w-5 h-5" />
                 Approve
               </button>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Comments Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-gray-400" />
-            <h2 className="font-semibold">Comments</h2>
+            <MessageCircle className="w-5 h-5 text-jury-primary" />
+            <h2 className="font-bold text-white">Comments</h2>
           </div>
 
           {!hasVoted ? (
-            <div className="card-base p-6 text-center text-gray-400">
-              Vote on this prompt to see and add comments
+            <div className="card-base p-8 text-center">
+              <MessageCircle className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-400">Vote on this prompt to see and add comments</p>
             </div>
           ) : (
             <>
@@ -260,21 +276,27 @@ export default function PromptDetailPage({
                 <button
                   onClick={() => commentMutation.mutate()}
                   disabled={!commentText.trim() || commentMutation.isPending}
-                  className="btn-primary px-4 disabled:opacity-50"
+                  className="btn-primary px-4"
                 >
                   {commentMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4" />
+                    <Send className="w-5 h-5" />
                   )}
                 </button>
               </div>
 
               {/* Comments List */}
-              {commentsData?.comments?.map((comment) => (
-                <div key={comment.id} className="card-base p-4">
+              {commentsData?.comments?.map((comment, index) => (
+                <motion.div
+                  key={comment.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="card-base p-4"
+                >
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-jury-surface-light flex items-center justify-center flex-shrink-0">
+                    <div className="avatar avatar-sm font-bold text-white">
                       {comment.user.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -283,53 +305,53 @@ export default function PromptDetailPage({
                           className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
-                        <span className="text-sm font-bold">
-                          {comment.user.displayName?.[0]?.toUpperCase() || '?'}
-                        </span>
+                        <span>{comment.user.displayName?.[0]?.toUpperCase() || '?'}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="font-semibold text-sm text-white">
                           {comment.user.displayName || 'Anonymous'}
                         </span>
                         <span className="text-xs text-gray-500">
                           {new Date(comment.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-sm">{comment.text}</p>
-                      <div className="flex items-center gap-4 mt-2">
+                      <p className="text-sm text-gray-300">{comment.text}</p>
+                      <div className="flex items-center gap-4 mt-3">
                         <button
                           onClick={() =>
                             reactionMutation.mutate({ commentId: comment.id, value: 1 })
                           }
-                          className={`flex items-center gap-1 text-sm ${
-                            comment.userReaction === 1 ? 'text-jury-approve' : 'text-gray-400'
+                          className={`flex items-center gap-1.5 text-sm transition-colors ${
+                            comment.userReaction === 1 ? 'text-jury-approve' : 'text-gray-500 hover:text-jury-approve'
                           }`}
                         >
-                          <ThumbsUp className="w-3 h-3" />
+                          <ThumbsUp className="w-4 h-4" />
                           {comment.approveCount}
                         </button>
                         <button
                           onClick={() =>
                             reactionMutation.mutate({ commentId: comment.id, value: -1 })
                           }
-                          className={`flex items-center gap-1 text-sm ${
-                            comment.userReaction === -1 ? 'text-jury-disapprove' : 'text-gray-400'
+                          className={`flex items-center gap-1.5 text-sm transition-colors ${
+                            comment.userReaction === -1 ? 'text-jury-disapprove' : 'text-gray-500 hover:text-jury-disapprove'
                           }`}
                         >
-                          <ThumbsDown className="w-3 h-3" />
+                          <ThumbsDown className="w-4 h-4" />
                           {comment.disapproveCount}
                         </button>
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
 
               {(!commentsData?.comments || commentsData.comments.length === 0) && (
-                <div className="text-center py-8 text-gray-400">
-                  No comments yet. Be the first to share your thoughts!
+                <div className="text-center py-10 text-gray-400">
+                  <MessageCircle className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                  <p>No comments yet</p>
+                  <p className="text-sm mt-1">Be the first to share your thoughts!</p>
                 </div>
               )}
             </>
@@ -338,38 +360,62 @@ export default function PromptDetailPage({
       </main>
 
       {/* Flag Dialog */}
-      {showFlagDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="card-base p-6 w-full max-w-sm space-y-4">
-            <div className="flex items-center gap-3">
-              <Flag className="w-5 h-5 text-jury-disapprove" />
-              <h3 className="text-lg font-semibold">Report Content</h3>
-            </div>
-            <p className="text-sm text-gray-400">
-              Flag this prompt if it contains inappropriate content.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowFlagDialog(false)}
-                className="flex-1 py-2 rounded-lg bg-jury-surface hover:bg-jury-surface-light transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => flagMutation.mutate('Inappropriate content')}
-                disabled={flagMutation.isPending}
-                className="flex-1 py-2 rounded-lg bg-jury-disapprove hover:bg-red-600 transition-colors disabled:opacity-50"
-              >
-                {flagMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin inline" />
-                ) : (
-                  'Report'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showFlagDialog && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="card-base p-6 w-full max-w-sm space-y-5"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-jury-disapprove/15 flex items-center justify-center">
+                    <Flag className="w-5 h-5 text-jury-disapprove" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Report Content</h3>
+                </div>
+                <button onClick={() => setShowFlagDialog(false)} className="icon-btn">
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+                <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-yellow-200">
+                  Only flag this content if it violates community guidelines.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowFlagDialog(false)}
+                  className="btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => flagMutation.mutate('Inappropriate content')}
+                  disabled={flagMutation.isPending}
+                  className="flex-1 py-3 rounded-xl bg-jury-disapprove hover:bg-jury-disapprove-dark text-white font-medium transition-colors"
+                >
+                  {flagMutation.isPending ? (
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                  ) : (
+                    'Report'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

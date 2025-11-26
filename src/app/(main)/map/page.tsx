@@ -3,16 +3,17 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useQuery } from '@tanstack/react-query'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Header } from '@/components/layout/Header'
 import { useLocation } from '@/contexts/LocationContext'
-import { Loader2, MapPin, ZoomIn, ZoomOut, Save } from 'lucide-react'
+import { Loader2, MapPin, ZoomIn, ZoomOut, Save, X, Users, TrendingUp, BarChart3, Navigation, Globe } from 'lucide-react'
 
-// Dynamic import for Leaflet (no SSR)
 const JuryMap = dynamic(() => import('@/components/map/JuryMap'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-jury-surface-light">
-      <Loader2 className="w-8 h-8 animate-spin text-jury-primary" />
+    <div className="w-full h-full flex flex-col items-center justify-center bg-jury-surface-light rounded-2xl">
+      <Loader2 className="w-10 h-10 animate-spin text-jury-primary" />
+      <p className="mt-3 text-gray-400 text-sm">Loading map...</p>
     </div>
   ),
 })
@@ -31,7 +32,6 @@ interface HeatmapData {
   }
 }
 
-// Default to NYC for demo purposes
 const DEFAULT_LAT = 40.7128
 const DEFAULT_LNG = -74.006
 
@@ -42,12 +42,10 @@ export default function MapPage() {
   const [radiusName, setRadiusName] = useState('')
   const [useDefaultLocation, setUseDefaultLocation] = useState(false)
 
-  // Use actual location if granted, otherwise use default if enabled
   const mapLat = granted && latitude ? latitude : useDefaultLocation ? DEFAULT_LAT : null
   const mapLng = granted && longitude ? longitude : useDefaultLocation ? DEFAULT_LNG : null
   const showMap = mapLat !== null && mapLng !== null
 
-  // Fetch heatmap data
   const { data, isLoading } = useQuery({
     queryKey: ['heatmap', mapLat, mapLng, radiusMiles],
     queryFn: async () => {
@@ -84,88 +82,109 @@ export default function MapPage() {
 
   if (!showMap) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen pb-24">
         <Header title="Good Company Map" showLogo={false} />
-        <main className="max-w-lg mx-auto px-4 py-8 text-center">
-          <div className="card-base p-8 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-jury-primary/20 flex items-center justify-center mx-auto">
-              <MapPin className="w-8 h-8 text-jury-primary" />
+        <main className="max-w-lg mx-auto px-4 py-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card-base p-8 text-center"
+          >
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-jury-primary/20 to-jury-secondary/20 flex items-center justify-center">
+              <MapPin className="w-10 h-10 text-jury-primary animate-float" />
             </div>
-            <h2 className="text-xl font-semibold">Location Required</h2>
-            <p className="text-gray-400">
-              Enable location to see the Good Company Map and discover alignment in your area.
+            <h2 className="text-2xl font-bold text-white mb-3">Enable Location</h2>
+            <p className="text-gray-400 mb-8 max-w-xs mx-auto">
+              See alignment heatmaps and discover like-minded people in your area.
             </p>
             <button
               onClick={requestLocation}
               disabled={locationLoading}
-              className="btn-primary w-full"
+              className="btn-primary w-full flex items-center justify-center gap-2 mb-4"
             >
               {locationLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                'Enable Location'
+                <>
+                  <Navigation className="w-5 h-5" />
+                  Enable Location
+                </>
               )}
             </button>
-            <div className="text-gray-500 text-sm">or</div>
+            <div className="divider my-6" />
             <button
               onClick={() => setUseDefaultLocation(true)}
-              className="w-full py-2 rounded-lg bg-jury-surface-light hover:bg-gray-600 transition-colors text-sm"
+              className="btn-secondary w-full flex items-center justify-center gap-2"
             >
+              <Globe className="w-5 h-5" />
               Use Demo Location (NYC)
             </button>
-          </div>
+          </motion.div>
         </main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-24">
       <Header title="Good Company Map" showLogo={false} />
 
-      <main className="max-w-lg mx-auto px-4 py-4 space-y-4">
+      <main className="max-w-lg mx-auto px-4 py-6 space-y-5">
         {/* Radius Controls */}
-        <div className="card-base p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium">Search Radius</span>
-            <span className="text-sm text-gray-400">{radiusMiles} miles</span>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card-base p-5"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-medium text-gray-300">Search Radius</span>
+            <span className="text-lg font-bold text-jury-primary">{radiusMiles} mi</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setRadiusMiles(Math.max(1, radiusMiles - 5))}
-              className="p-2 rounded-lg bg-jury-surface-light hover:bg-gray-600 transition-colors"
+              className="icon-btn"
             >
-              <ZoomIn className="w-4 h-4" />
+              <ZoomIn className="w-5 h-5 text-gray-400" />
             </button>
-            <input
-              type="range"
-              min="1"
-              max="100"
-              value={radiusMiles}
-              onChange={(e) => setRadiusMiles(Number(e.target.value))}
-              className="flex-1 h-2 bg-jury-surface-light rounded-lg appearance-none cursor-pointer"
-            />
+            <div className="flex-1">
+              <input
+                type="range"
+                min="1"
+                max="100"
+                value={radiusMiles}
+                onChange={(e) => setRadiusMiles(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
             <button
               onClick={() => setRadiusMiles(Math.min(100, radiusMiles + 5))}
-              className="p-2 rounded-lg bg-jury-surface-light hover:bg-gray-600 transition-colors"
+              className="icon-btn"
             >
-              <ZoomOut className="w-4 h-4" />
+              <ZoomOut className="w-5 h-5 text-gray-400" />
             </button>
             <button
               onClick={() => setShowSaveDialog(true)}
-              className="p-2 rounded-lg bg-jury-primary hover:bg-blue-600 transition-colors"
+              className="p-2.5 rounded-xl bg-jury-primary hover:bg-jury-primary-dark transition-colors"
               title="Save this radius"
             >
-              <Save className="w-4 h-4" />
+              <Save className="w-5 h-5" />
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Map Visualization */}
-        <div className="card-base overflow-hidden" style={{ height: '400px' }}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="card-base overflow-hidden"
+          style={{ height: '400px' }}
+        >
           {isLoading ? (
-            <div className="h-full flex items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-jury-primary" />
+            <div className="h-full flex flex-col items-center justify-center">
+              <Loader2 className="w-10 h-10 animate-spin text-jury-primary" />
+              <p className="mt-3 text-gray-400 text-sm">Loading heatmap data...</p>
             </div>
           ) : (
             <JuryMap
@@ -176,82 +195,116 @@ export default function MapPage() {
               userCount={data?.stats.userCount || 0}
             />
           )}
-        </div>
+        </motion.div>
 
-        {/* Stats */}
+        {/* Stats Grid */}
         {data && (
-          <div className="grid grid-cols-3 gap-3">
-            <div className="card-base p-4 text-center">
-              <div className="text-2xl font-bold text-jury-primary">
-                {data.stats.userCount}
-              </div>
-              <div className="text-xs text-gray-400">People Nearby</div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-3 gap-3"
+          >
+            <div className="stat-card">
+              <Users className="w-5 h-5 text-jury-primary mx-auto mb-2" />
+              <div className="stat-value text-jury-primary">{data.stats.userCount}</div>
+              <div className="stat-label">Nearby</div>
             </div>
-            <div className="card-base p-4 text-center">
-              <div className="text-2xl font-bold text-jury-approve">
-                {Math.round(data.stats.avgAlignment * 100)}%
-              </div>
-              <div className="text-xs text-gray-400">Avg Alignment</div>
+            <div className="stat-card">
+              <TrendingUp className="w-5 h-5 text-jury-approve mx-auto mb-2" />
+              <div className="stat-value text-jury-approve">{Math.round(data.stats.avgAlignment * 100)}%</div>
+              <div className="stat-label">Aligned</div>
             </div>
-            <div className="card-base p-4 text-center">
-              <div className="text-2xl font-bold">{data.stats.totalVotes}</div>
-              <div className="text-xs text-gray-400">Total Votes</div>
+            <div className="stat-card">
+              <BarChart3 className="w-5 h-5 text-jury-secondary mx-auto mb-2" />
+              <div className="stat-value text-jury-secondary">{data.stats.totalVotes}</div>
+              <div className="stat-label">Votes</div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Low Data Warning */}
         {data && data.stats.userCount < 5 && (
-          <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-sm">
-            <p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30"
+          >
+            <p className="text-yellow-400 text-sm">
               <strong>Low data:</strong> Only {data.stats.userCount} user
               {data.stats.userCount !== 1 ? 's' : ''} found in this area. Results may not be representative.
             </p>
-          </div>
+          </motion.div>
         )}
 
         {/* Alignment Legend */}
-        <div className="card-base p-4">
-          <p className="text-sm font-medium mb-2">Alignment Scale</p>
-          <div className="h-4 rounded-full overflow-hidden heatmap-gradient" />
-          <div className="flex justify-between text-xs text-gray-400 mt-1">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="card-base p-5"
+        >
+          <p className="text-sm font-medium text-gray-300 mb-3">Alignment Scale</p>
+          <div className="h-4 rounded-full overflow-hidden heatmap-gradient shadow-inner" />
+          <div className="flex justify-between text-xs text-gray-500 mt-2">
             <span>Opposing</span>
             <span>Neutral</span>
             <span>Aligned</span>
           </div>
-        </div>
+        </motion.div>
       </main>
 
       {/* Save Dialog */}
-      {showSaveDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="card-base p-6 w-full max-w-sm space-y-4">
-            <h3 className="text-lg font-semibold">Save This Radius</h3>
-            <input
-              type="text"
-              value={radiusName}
-              onChange={(e) => setRadiusName(e.target.value)}
-              placeholder="e.g., Home, Work, Downtown"
-              className="input-field"
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowSaveDialog(false)}
-                className="flex-1 py-2 rounded-lg bg-jury-surface hover:bg-jury-surface-light transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveRadius}
-                disabled={!radiusName.trim()}
-                className="flex-1 btn-primary disabled:opacity-50"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showSaveDialog && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="card-base p-6 w-full max-w-sm space-y-5"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">Save This Radius</h3>
+                <button
+                  onClick={() => setShowSaveDialog(false)}
+                  className="icon-btn"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+              <input
+                type="text"
+                value={radiusName}
+                onChange={(e) => setRadiusName(e.target.value)}
+                placeholder="e.g., Home, Work, Downtown"
+                className="input-field"
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowSaveDialog(false)}
+                  className="btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveRadius}
+                  disabled={!radiusName.trim()}
+                  className="btn-primary flex-1"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

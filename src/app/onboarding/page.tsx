@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, Loader2, ChevronRight, Scale, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { MapPin, Loader2, ChevronRight, Scale, ThumbsUp, ThumbsDown, Sparkles, Users, Check, Navigation } from 'lucide-react'
 import { useLocation } from '@/contexts/LocationContext'
 
 interface InitialPrompt {
@@ -12,7 +12,6 @@ interface InitialPrompt {
   text: string
 }
 
-// Initial prompts for onboarding (will be fetched from API in production)
 const ONBOARDING_PROMPTS: InitialPrompt[] = [
   { id: 'onboard-1', text: 'Pineapple belongs on pizza' },
   { id: 'onboard-2', text: 'Dogs are better than cats' },
@@ -61,7 +60,6 @@ export default function OnboardingPage() {
     setSubmitting(true)
 
     try {
-      // Submit onboarding data to API
       await fetch('/api/user/onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,14 +80,21 @@ export default function OnboardingPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-jury-primary" />
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-jury-primary" />
+        <p className="mt-4 text-gray-400">Loading...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-jury-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-jury-secondary/10 rounded-full blur-3xl" />
+      </div>
+
       <AnimatePresence mode="wait">
         {/* Welcome Step */}
         {step === 'welcome' && (
@@ -98,58 +103,63 @@ export default function OnboardingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-md text-center space-y-6"
+            className="w-full max-w-md text-center space-y-8 relative z-10"
           >
-            <div className="flex items-center justify-center gap-2 mb-8">
-              <Scale className="w-12 h-12 text-jury-primary" />
-              <h1 className="text-4xl font-bold">Jury</h1>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-jury-primary to-jury-secondary rounded-2xl blur-xl opacity-50" />
+                <div className="relative p-4 bg-gradient-to-br from-jury-primary to-jury-secondary rounded-2xl">
+                  <Scale className="w-10 h-10 text-white" />
+                </div>
+              </div>
+              <h1 className="text-5xl font-bold">
+                <span className="text-gradient-primary">Jury</span>
+              </h1>
             </div>
 
-            <h2 className="text-2xl font-semibold">Welcome{session?.user?.name ? `, ${session.user.name}` : ''}!</h2>
-
-            <p className="text-gray-400">
-              Let&apos;s set you up to discover people who share your views (or delightfully disagree).
-            </p>
-
-            <div className="space-y-4 text-left card-base p-6">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-jury-primary/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-jury-primary font-bold">1</span>
-                </div>
-                <div>
-                  <p className="font-medium">Share your location</p>
-                  <p className="text-sm text-gray-400">Find people nearby with similar opinions</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-jury-primary/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-jury-primary font-bold">2</span>
-                </div>
-                <div>
-                  <p className="font-medium">Answer 5 quick prompts</p>
-                  <p className="text-sm text-gray-400">Help us understand your perspectives</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-jury-primary/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-jury-primary font-bold">3</span>
-                </div>
-                <div>
-                  <p className="font-medium">Start connecting</p>
-                  <p className="text-sm text-gray-400">Get matched with your &quot;Good Company&quot;</p>
-                </div>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Welcome{session?.user?.name ? `, ${session.user.name}` : ''}!
+              </h2>
+              <p className="text-gray-400">
+                Let&apos;s set you up to discover people who share your views.
+              </p>
             </div>
 
-            <button
+            <div className="card-base p-6 space-y-5 text-left">
+              {[
+                { num: 1, title: 'Share your location', desc: 'Find people nearby with similar opinions', icon: MapPin },
+                { num: 2, title: 'Answer 5 quick prompts', desc: 'Help us understand your perspectives', icon: Sparkles },
+                { num: 3, title: 'Start connecting', desc: 'Get matched with your "Good Company"', icon: Users },
+              ].map((item, index) => (
+                <motion.div
+                  key={item.num}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 + index * 0.1 }}
+                  className="flex items-start gap-4"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-jury-primary/20 to-jury-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <item.icon className="w-5 h-5 text-jury-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white">{item.title}</p>
+                    <p className="text-sm text-gray-400">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
               onClick={() => setStep('location')}
               className="btn-primary w-full flex items-center justify-center gap-2"
             >
               Get Started
               <ChevronRight className="w-4 h-4" />
-            </button>
+            </motion.button>
           </motion.div>
         )}
 
@@ -160,24 +170,28 @@ export default function OnboardingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-md text-center space-y-6"
+            className="w-full max-w-md text-center space-y-8 relative z-10"
           >
-            <div className="w-20 h-20 rounded-full bg-jury-primary/20 flex items-center justify-center mx-auto">
-              <MapPin className="w-10 h-10 text-jury-primary" />
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-jury-primary/20 to-jury-secondary/20 flex items-center justify-center mx-auto">
+              <MapPin className="w-12 h-12 text-jury-primary animate-float" />
             </div>
 
-            <h2 className="text-2xl font-semibold">Enable Location</h2>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Enable Location</h2>
+              <p className="text-gray-400">
+                Jury uses your location to show you opinions from people nearby.
+              </p>
+            </div>
 
-            <p className="text-gray-400">
-              Jury uses your location to show you opinions from people nearby and help you find your community.
-            </p>
-
-            <div className="card-base p-4 text-sm text-gray-400">
-              <p>Your exact location is never shared. We round your position to protect your privacy.</p>
+            <div className="card-base p-4 flex items-start gap-3 text-left">
+              <Check className="w-5 h-5 text-jury-approve mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-gray-400">
+                Your exact location is never shared. We round your position to protect your privacy.
+              </p>
             </div>
 
             {locationError && (
-              <div className="text-jury-disapprove text-sm">
+              <div className="p-3 rounded-xl bg-jury-disapprove/10 border border-jury-disapprove/30 text-jury-disapprove text-sm">
                 {locationError}. You can still continue, but location features will be limited.
               </div>
             )}
@@ -189,21 +203,25 @@ export default function OnboardingPage() {
                 className="btn-primary w-full flex items-center justify-center gap-2"
               >
                 {locationLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : granted ? (
                   <>
+                    <Check className="w-5 h-5" />
                     Location Enabled
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4 ml-1" />
                   </>
                 ) : (
-                  'Enable Location'
+                  <>
+                    <Navigation className="w-5 h-5" />
+                    Enable Location
+                  </>
                 )}
               </button>
 
               {!granted && (
                 <button
                   onClick={() => setStep('prompts')}
-                  className="w-full text-gray-400 hover:text-white text-sm"
+                  className="w-full py-2 text-gray-400 hover:text-white text-sm transition-colors"
                 >
                   Skip for now
                 </button>
@@ -219,18 +237,18 @@ export default function OnboardingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-md space-y-6"
+            className="w-full max-w-md space-y-6 relative z-10"
           >
             {/* Progress */}
             <div className="flex gap-2">
               {ONBOARDING_PROMPTS.map((_, index) => (
                 <div
                   key={index}
-                  className={`h-1 flex-1 rounded-full transition-colors ${
+                  className={`h-2 flex-1 rounded-full transition-all duration-300 ${
                     index < currentPromptIndex
-                      ? 'bg-jury-approve'
+                      ? 'bg-gradient-to-r from-jury-approve to-jury-approve-light'
                       : index === currentPromptIndex
-                      ? 'bg-jury-primary'
+                      ? 'bg-jury-primary animate-pulse'
                       : 'bg-jury-surface-light'
                   }`}
                 />
@@ -245,12 +263,13 @@ export default function OnboardingPage() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentPromptIndex}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="card-base p-8"
+                initial={{ opacity: 0, scale: 0.9, rotateY: -15 }}
+                animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                exit={{ opacity: 0, scale: 0.9, rotateY: 15 }}
+                transition={{ type: 'spring', duration: 0.5 }}
+                className="card-base p-10"
               >
-                <p className="text-xl font-medium text-center">
+                <p className="text-2xl font-semibold text-center text-white leading-relaxed">
                   {ONBOARDING_PROMPTS[currentPromptIndex].text}
                 </p>
               </motion.div>
@@ -260,16 +279,16 @@ export default function OnboardingPage() {
             <div className="flex gap-4">
               <button
                 onClick={() => handleVote(-1)}
-                className="btn-disapprove flex-1 flex items-center justify-center gap-2"
+                className="btn-disapprove flex-1 flex items-center justify-center gap-2.5 py-4"
               >
-                <ThumbsDown className="w-5 h-5" />
+                <ThumbsDown className="w-6 h-6" />
                 Disagree
               </button>
               <button
                 onClick={() => handleVote(1)}
-                className="btn-approve flex-1 flex items-center justify-center gap-2"
+                className="btn-approve flex-1 flex items-center justify-center gap-2.5 py-4"
               >
-                <ThumbsUp className="w-5 h-5" />
+                <ThumbsUp className="w-6 h-6" />
                 Agree
               </button>
             </div>
@@ -283,32 +302,42 @@ export default function OnboardingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-md text-center space-y-6"
+            className="w-full max-w-md text-center space-y-8 relative z-10"
           >
-            <div className="w-20 h-20 rounded-full bg-jury-approve/20 flex items-center justify-center mx-auto">
-              <Scale className="w-10 h-10 text-jury-approve" />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', delay: 0.2 }}
+              className="w-24 h-24 rounded-2xl bg-gradient-to-br from-jury-approve/20 to-jury-approve-light/20 flex items-center justify-center mx-auto"
+            >
+              <Check className="w-12 h-12 text-jury-approve" />
+            </motion.div>
+
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">You&apos;re all set!</h2>
+              <p className="text-gray-400">
+                You answered {Object.keys(votes).length} prompts. Now let&apos;s find your Good Company.
+              </p>
             </div>
 
-            <h2 className="text-2xl font-semibold">You&apos;re all set!</h2>
-
-            <p className="text-gray-400">
-              You answered {Object.keys(votes).length} prompts. Now let&apos;s find your Good Company.
-            </p>
-
-            <button
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
               onClick={handleComplete}
               disabled={submitting}
               className="btn-primary w-full flex items-center justify-center gap-2"
             >
               {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
+                  <Sparkles className="w-5 h-5" />
                   Enter the Jury
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
-            </button>
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
