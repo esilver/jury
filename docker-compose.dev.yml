@@ -1,0 +1,58 @@
+version: '3.8'
+
+# Development configuration with hot reloading
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: jury-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jury
+      POSTGRES_PASSWORD: jury_password
+      POSTGRES_DB: jury
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jury -d jury"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Next.js Development Server
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: jury-app-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://jury:jury_password@db:5432/jury?schema=public
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=development-secret-key
+      - NODE_ENV=development
+    volumes:
+      # Mount source code for hot reloading
+      - ./src:/app/src:delegated
+      - ./public:/app/public:delegated
+      - ./prisma:/app/prisma:delegated
+      # Exclude node_modules
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      db:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data_dev:
+    driver: local
+
+networks:
+  default:
+    name: jury-network-dev

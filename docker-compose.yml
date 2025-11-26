@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: jury-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jury
+      POSTGRES_PASSWORD: jury_password
+      POSTGRES_DB: jury
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jury -d jury"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jury-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://jury:jury_password@db:5432/jury?schema=public
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=your-production-secret-change-this
+      - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Database migrations runner (one-time)
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: jury-migrate
+    environment:
+      - DATABASE_URL=postgresql://jury:jury_password@db:5432/jury?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - migrate
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: jury-network

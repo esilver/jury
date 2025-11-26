@@ -1,0 +1,19 @@
+# Dockerfile for running database migrations and seeding
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat openssl
+
+WORKDIR /app
+
+# Copy package files and prisma schema
+COPY package.json package-lock.json ./
+COPY prisma ./prisma/
+
+# Install all dependencies (need tsx for seeding)
+RUN npm ci
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Run migrations and seed
+CMD ["sh", "-c", "npx prisma db push --skip-generate && npx tsx prisma/seed.ts"]
