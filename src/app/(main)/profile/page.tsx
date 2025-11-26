@@ -89,10 +89,10 @@ export default function ProfilePage() {
               {session?.user?.name?.[0]?.toUpperCase() || session?.user?.email?.[0]?.toUpperCase() || '?'}
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-bold text-slate-800">
                 {session?.user?.name || 'Anonymous User'}
               </h2>
-              <p className="text-gray-400 text-sm">{session?.user?.email}</p>
+              <p className="text-slate-500 text-sm">{session?.user?.email}</p>
             </div>
           </div>
 
@@ -185,7 +185,7 @@ export default function ProfilePage() {
                   flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2
                   ${isActive
                     ? 'bg-jury-primary/15 text-jury-primary'
-                    : 'text-gray-400 hover:text-white hover:bg-jury-surface-light/50'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                   }
                 `}
               >
@@ -210,11 +210,11 @@ export default function ProfilePage() {
                     <MapPin className="w-6 h-6 text-jury-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-white">Good Company Map</p>
-                    <p className="text-sm text-gray-400">See alignment in your area</p>
+                    <p className="font-semibold text-slate-800">Good Company Map</p>
+                    <p className="text-sm text-slate-500">See alignment in your area</p>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-500" />
+                <ChevronRight className="w-5 h-5 text-slate-400" />
               </Link>
 
               <Link href="/profile/radii" className="card-base-interactive p-4 flex items-center justify-between block">
@@ -223,11 +223,11 @@ export default function ProfilePage() {
                     <Star className="w-6 h-6 text-jury-secondary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-white">Saved Radii</p>
-                    <p className="text-sm text-gray-400">Compare different areas</p>
+                    <p className="font-semibold text-slate-800">Saved Radii</p>
+                    <p className="text-sm text-slate-500">Compare different areas</p>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-500" />
+                <ChevronRight className="w-5 h-5 text-slate-400" />
               </Link>
             </motion.div>
           )}
@@ -248,7 +248,7 @@ export default function ProfilePage() {
                       transition={{ delay: index * 0.05 }}
                       className="card-base p-4"
                     >
-                      <p className="font-medium text-white mb-3">{vote.promptText}</p>
+                      <p className="font-medium text-slate-800 mb-3">{vote.promptText}</p>
                       <div className="flex items-center justify-between">
                         <span
                           className={`
@@ -258,13 +258,13 @@ export default function ProfilePage() {
                         >
                           {vote.value > 0 ? 'Approved' : 'Disapproved'}
                         </span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-slate-500">
                           {new Date(vote.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                       {vote.versions && vote.versions.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-jury-surface-light">
-                          <p className="text-xs text-gray-500">
+                        <div className="mt-3 pt-3 border-t border-slate-200">
+                          <p className="text-xs text-slate-500">
                             Revised {vote.versions.length} time{vote.versions.length > 1 ? 's' : ''}
                           </p>
                         </div>
@@ -273,7 +273,7 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-slate-500">
                   <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   No vote history yet
                 </div>
@@ -297,8 +297,8 @@ export default function ProfilePage() {
                       transition={{ delay: index * 0.05 }}
                       className="card-base p-4"
                     >
-                      <p className="font-medium text-white mb-3">{item.prompt.text}</p>
-                      <div className="flex items-center justify-between text-sm text-gray-400">
+                      <p className="font-medium text-slate-800 mb-3">{item.prompt.text}</p>
+                      <div className="flex items-center justify-between text-sm text-slate-500">
                         <span>{item.prompt.voteCount} votes</span>
                         <span>Saved {new Date(item.savedAt).toLocaleDateString()}</span>
                       </div>
@@ -306,7 +306,7 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-slate-500">
                   <Bookmark className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No saved prompts yet</p>
                   <p className="text-sm mt-1">Swipe right on prompts to save them!</p>

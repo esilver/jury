@@ -51,11 +51,11 @@ function LoginForm() {
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="email" className="block text-sm font-medium text-slate-600">
             Email
           </label>
           <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               id="email"
               type="email"
@@ -69,11 +69,11 @@ function LoginForm() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="password" className="block text-sm font-medium text-slate-600">
             Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               id="password"
               type="password"
@@ -114,7 +114,7 @@ function LoginForm() {
 
       <div className="divider my-6" />
 
-      <p className="text-center text-sm text-gray-400">
+      <p className="text-center text-sm text-slate-500">
         Don&apos;t have an account?{' '}
         <Link
           href="/register"
@@ -164,7 +164,7 @@ export default function LoginPage() {
               <span className="text-gradient-primary">Jury</span>
             </h1>
           </div>
-          <p className="text-gray-400 text-lg">Find your people through shared opinions</p>
+          <p className="text-slate-500 text-lg">Find your people through shared opinions</p>
         </motion.div>
 
         {/* Login Form */}
@@ -177,13 +177,13 @@ export default function LoginPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="flex items-center justify-center gap-6 text-sm text-gray-500"
+          className="flex items-center justify-center gap-6 text-sm text-slate-500"
         >
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-jury-primary" />
             <span>Free to use</span>
           </div>
-          <div className="w-1 h-1 bg-gray-600 rounded-full" />
+          <div className="w-1 h-1 bg-slate-300 rounded-full" />
           <div className="flex items-center gap-1.5">
             <Lock className="w-4 h-4 text-jury-approve" />
             <span>Private & Secure</span>

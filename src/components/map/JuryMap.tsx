@@ -77,7 +77,7 @@ export default function JuryMap({
   if (!mounted) {
     return (
       <div className="w-full h-full bg-jury-surface-light flex items-center justify-center">
-        <div className="text-gray-400">Loading map...</div>
+        <div className="text-slate-500">Loading map...</div>
       </div>
     )
   }
@@ -96,16 +96,16 @@ export default function JuryMap({
       center={center}
       zoom={zoom}
       className="w-full h-full rounded-2xl"
-      style={{ background: '#1e293b', height: '100%', width: '100%', minHeight: '400px' }}
+      style={{ background: '#f1f5f9', height: '100%', width: '100%', minHeight: '400px' }}
       zoomControl={false}
       scrollWheelZoom={true}
     >
       <MapUpdater center={center} zoom={zoom} />
 
-      {/* Dark theme map tiles */}
+      {/* Light theme map tiles */}
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
 
       {/* Radius circle */}
