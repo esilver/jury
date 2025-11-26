@@ -195,8 +195,8 @@ async function main() {
           text: prompt.text,
           textLower: prompt.text.toLowerCase(),
           type: prompt.type,
-          poleLeftLabel: (prompt as any).poleLeft || null,
-          poleRightLabel: (prompt as any).poleRight || null,
+          poleLeft: (prompt as any).poleLeft || null,
+          poleRight: (prompt as any).poleRight || null,
           creatorId: creator.id,
           isPublic: true,
           trendingScore: Math.random() * 100,
@@ -221,9 +221,9 @@ async function main() {
     for (const prompt of promptsToVote) {
       const existingVote = await prisma.vote.findUnique({
         where: {
-          promptId_voterId: {
+          userId_promptId: {
             promptId: prompt.id,
-            voterId: user.id,
+            userId: user.id,
           },
         },
       })
@@ -233,9 +233,8 @@ async function main() {
         await prisma.vote.create({
           data: {
             promptId: prompt.id,
-            voterId: user.id,
+            userId: user.id,
             value,
-            intensity: Math.abs(value),
           },
         })
         voteCount++
@@ -267,7 +266,7 @@ async function main() {
       await prisma.comment.create({
         data: {
           promptId: prompt.id,
-          authorId: commenter.id,
+          userId: commenter.id,
           text,
         },
       })
@@ -284,8 +283,7 @@ async function main() {
   const potentialMatches = simulatedUsers.slice(0, 15)
 
   for (const simUser of potentialMatches) {
-    const alignment = randomBetween(0.5, 0.95)
-    const sharedVotes = Math.floor(randomBetween(5, 15))
+    const score = randomBetween(0.5, 0.95)
 
     const existingMatch = await prisma.match.findFirst({
       where: {
@@ -301,9 +299,8 @@ async function main() {
         data: {
           user1Id: demoUser.id,
           user2Id: simUser.id,
-          alignmentScore: alignment,
-          sharedVotes,
-          status: Math.random() > 0.7 ? 'ACCEPTED' : 'PENDING',
+          type: 'SIMILAR',
+          score,
         },
       })
       matchCount++
@@ -315,7 +312,7 @@ async function main() {
   console.log('Updating user metrics...')
 
   for (const user of [...simulatedUsers, { id: demoUser.id, name: demoUser.name }]) {
-    const totalVotes = await prisma.vote.count({ where: { voterId: user.id } })
+    const totalVotes = await prisma.vote.count({ where: { userId: user.id } })
     const totalPrompts = await prisma.prompt.count({ where: { creatorId: user.id } })
 
     await prisma.userMetric.upsert({
