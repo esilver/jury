@@ -1,0 +1,62 @@
+{
+  "name": "jury",
+  "version": "1.0.0",
+  "description": "Opinion-based social matching platform",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "npx tsx prisma/seed.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:36932/git/esilver/jury"
+  },
+  "keywords": [
+    "social",
+    "voting",
+    "opinions",
+    "matching"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@tanstack/react-query": "^5.90.11",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.22",
+    "bcryptjs": "^3.0.3",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.23.24",
+    "fuse.js": "^7.1.0",
+    "lucide-react": "^0.554.0",
+    "next": "^14.2.33",
+    "next-auth": "^4.24.13",
+    "postcss": "^8.5.6",
+    "prisma": "^5.22.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.9.3",
+    "uuid": "^13.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.0.4",
+    "tsx": "^4.0.0"
+  }
+}

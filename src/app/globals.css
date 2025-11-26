@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 15, 23, 42;
+  --background-end-rgb: 30, 41, 59;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Flashcard animations */
+@keyframes cardSlideIn {
+  from {
+    transform: translateX(100%) rotate(5deg);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes cardSlideOutLeft {
+  from {
+    transform: translateX(0) rotate(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-120%) rotate(-10deg);
+    opacity: 0;
+  }
+}
+
+@keyframes cardSlideOutRight {
+  from {
+    transform: translateX(0) rotate(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(120%) rotate(10deg);
+    opacity: 0;
+  }
+}
+
+.card-slide-in {
+  animation: cardSlideIn 0.3s ease-out;
+}
+
+.card-slide-out-left {
+  animation: cardSlideOutLeft 0.3s ease-out forwards;
+}
+
+.card-slide-out-right {
+  animation: cardSlideOutRight 0.3s ease-out forwards;
+}
+
+/* Vote button press effects */
+.vote-btn-approve:active {
+  background-color: #16a34a;
+  transform: scale(0.95);
+}
+
+.vote-btn-disapprove:active {
+  background-color: #dc2626;
+  transform: scale(0.95);
+}
+
+/* Heatmap gradient */
+.heatmap-gradient {
+  background: linear-gradient(
+    to right,
+    #ef4444 0%,
+    #fbbf24 25%,
+    #84cc16 50%,
+    #22c55e 75%,
+    #10b981 100%
+  );
+}
+
+/* Touch-friendly sizing */
+@layer utilities {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Mobile-first responsive helpers */
+@layer components {
+  .card-base {
+    @apply bg-jury-surface rounded-2xl shadow-lg border border-jury-surface-light;
+  }
+
+  .btn-primary {
+    @apply bg-jury-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors touch-target;
+  }
+
+  .btn-approve {
+    @apply bg-jury-approve hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all touch-target;
+  }
+
+  .btn-disapprove {
+    @apply bg-jury-disapprove hover:bg-red-600 text-white font-bold py-3 px-6 rounded-xl transition-all touch-target;
+  }
+
+  .input-field {
+    @apply w-full bg-jury-surface-light border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-jury-primary focus:border-transparent;
+  }
+}

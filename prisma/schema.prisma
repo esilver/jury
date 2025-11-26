@@ -1,0 +1,572 @@
+// Jury Database Schema
+// Opinion-based social matching platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  name          String?
+  displayName   String?
+  bio           String?
+  avatarUrl     String?
+
+  // Location (rounded for privacy)
+  latitude      Float?
+  longitude     Float?
+  locationUpdatedAt DateTime?
+
+  // Onboarding status
+  onboardingCompleted Boolean @default(false)
+  onboardingStep      Int     @default(0)
+
+  // Settings
+  alertsPositive   Boolean @default(true)
+  alertsNegative   Boolean @default(true)
+  alertVolume      Float   @default(1.0)
+
+  // Premium features
+  isPremium     Boolean @default(false)
+  premiumUntil  DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastActiveAt  DateTime @default(now())
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  votes         Vote[]
+  voteVersions  VoteVersion[]
+  prompts       Prompt[]
+  comments      Comment[]
+  commentReactions CommentReaction[]
+  flags         Flag[]
+  savedPrompts  SavedPrompt[]
+  savedRadii    SavedRadius[]
+  priorityTopics PriorityTopic[]
+  publicPrompts PublicPromptDisplay[]
+  sentMatches   Match[] @relation("MatchUser1")
+  receivedMatches Match[] @relation("MatchUser2")
+  messages      Message[]
+  groupMemberships GroupMember[]
+
+  @@index([latitude, longitude])
+  @@index([lastActiveAt])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// PROMPTS
+// ============================================
+
+enum PromptType {
+  STATEMENT      // Single statement with Disapprove/Approve scale
+  TWO_POLE       // Up to 5 options between two poles
+  MULTI_CHOICE   // Single or multi-select options
+}
+
+enum MultiChoiceMode {
+  SINGLE_SELECT
+  MULTI_SELECT
+}
+
+model Prompt {
+  id            String      @id @default(cuid())
+  text          String
+  textLower     String      // Lowercase version for fuzzy matching
+  type          PromptType  @default(STATEMENT)
+
+  // For TWO_POLE type
+  poleLeft      String?
+  poleRight     String?
+
+  // For MULTI_CHOICE type
+  multiChoiceMode MultiChoiceMode?
+
+  // Creator info
+  creatorId     String
+  creator       User        @relation(fields: [creatorId], references: [id])
+
+  // Metadata
+  isPublic      Boolean     @default(true)
+  trendingScore Float       @default(0)
+  voteCount     Int         @default(0)
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  choices       PromptChoice[]
+  votes         Vote[]
+  voteVersions  VoteVersion[]
+  comments      Comment[]
+  mediaAttachments MediaAttachment[]
+  flags         Flag[]
+  savedPrompts  SavedPrompt[]
+  priorityTopics PriorityTopic[]
+  publicDisplays PublicPromptDisplay[]
+  groupPrompts  GroupPrompt[]
+
+  @@index([textLower])
+  @@index([createdAt])
+  @@index([trendingScore])
+  @@index([voteCount])
+}
+
+model PromptChoice {
+  id        String   @id @default(cuid())
+  promptId  String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  text      String
+  order     Int      // For ordering choices
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  voteChoices VoteChoice[]
+
+  @@index([promptId])
+}
+
+model MediaAttachment {
+  id          String   @id @default(cuid())
+  promptId    String
+  prompt      Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  type        String   // 'image', 'video', 'link'
+  url         String
+  thumbnailUrl String?
+  mimeType    String?
+  fileSize    Int?
+  duration    Int?     // For videos, in seconds
+
+  createdAt   DateTime @default(now())
+
+  @@index([promptId])
+}
+
+// ============================================
+// VOTES
+// ============================================
+
+model Vote {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId   String
+  prompt     Prompt    @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  // For STATEMENT and TWO_POLE: -1.0 to +1.0
+  value      Float?
+
+  // For MULTI_CHOICE: related choices
+  choices    VoteChoice[]
+
+  // Revision tracking
+  version       Int      @default(1)
+  lastRevisedAt DateTime?
+  canReviseAt   DateTime? // Next time user can revise (daily limit)
+
+  // Location at time of vote (for heatmaps)
+  latitude   Float?
+  longitude  Float?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  versions   VoteVersion[]
+
+  @@unique([userId, promptId])
+  @@index([promptId, latitude, longitude])
+  @@index([userId])
+}
+
+model VoteChoice {
+  id        String @id @default(cuid())
+  voteId    String
+  vote      Vote   @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  choiceId  String
+  choice    PromptChoice @relation(fields: [choiceId], references: [id], onDelete: Cascade)
+
+  @@unique([voteId, choiceId])
+  @@index([choiceId])
+}
+
+model VoteVersion {
+  id          String   @id @default(cuid())
+  voteId      String
+  vote        Vote     @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  promptId    String
+  prompt      Prompt   @relation(fields: [promptId], references: [id])
+
+  version     Int
+  value       Float?
+  choiceIds   String[] // For MULTI_CHOICE: array of selected choice IDs
+
+  // If this was a paid instant amendment
+  isPaidAmendment Boolean @default(false)
+  amendmentReason String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([voteId])
+  @@index([userId])
+  @@index([promptId])
+}
+
+// ============================================
+// COMMENTS
+// ============================================
+
+model Comment {
+  id        String   @id @default(cuid())
+  promptId  String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  text      String
+
+  // Stats (denormalized for performance)
+  approveCount    Int @default(0)
+  disapproveCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  reactions CommentReaction[]
+  flags     Flag[]
+
+  @@index([promptId])
+  @@index([userId])
+}
+
+model CommentReaction {
+  id        String  @id @default(cuid())
+  commentId String
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  value     Int     // 1 = approve, -1 = disapprove
+
+  createdAt DateTime @default(now())
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+}
+
+// ============================================
+// MODERATION
+// ============================================
+
+enum FlagType {
+  PROMPT
+  COMMENT
+  USER
+}
+
+enum FlagStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+model Flag {
+  id          String     @id @default(cuid())
+  type        FlagType
+  status      FlagStatus @default(PENDING)
+
+  reporterId  String
+  reporter    User       @relation(fields: [reporterId], references: [id])
+
+  promptId    String?
+  prompt      Prompt?    @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  commentId   String?
+  comment     Comment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  reason      String?
+
+  createdAt   DateTime   @default(now())
+  reviewedAt  DateTime?
+
+  @@index([status])
+  @@index([type])
+}
+
+// ============================================
+// USER FEATURES
+// ============================================
+
+model SavedPrompt {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId String
+  prompt   Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, promptId])
+  @@index([userId])
+}
+
+model SavedRadius {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  latitude  Float
+  longitude Float
+  radiusMiles Float @default(20)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PriorityTopic {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId String
+  prompt   Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  weight   Float  @default(1.0) // Higher = more priority
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, promptId])
+  @@index([userId])
+}
+
+model PublicPromptDisplay {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId String
+  prompt   Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  order    Int    @default(0) // For ordering (max 10 per user)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, promptId])
+  @@index([userId])
+}
+
+// ============================================
+// MATCHING & SOCIAL
+// ============================================
+
+enum MatchType {
+  SIMILAR   // High alignment
+  OPPOSITE  // High opposition
+}
+
+model Match {
+  id        String    @id @default(cuid())
+  user1Id   String
+  user1     User      @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2Id   String
+  user2     User      @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  type      MatchType
+  score     Float     // Alignment/opposition percentage
+
+  // Which prompt triggered this match
+  promptId  String?
+
+  // Location where match occurred
+  latitude  Float?
+  longitude Float?
+
+  // Whether users have been notified
+  user1Notified Boolean @default(false)
+  user2Notified Boolean @default(false)
+
+  // Whether users started a conversation
+  conversationStarted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  messages  Message[]
+
+  @@unique([user1Id, user2Id, promptId])
+  @@index([user1Id])
+  @@index([user2Id])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  text      String
+
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([matchId])
+  @@index([senderId])
+}
+
+// ============================================
+// GROUPS & ORGANIZATIONS
+// ============================================
+
+enum GroupRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Group {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?
+
+  isPublic    Boolean @default(false)
+  isCompany   Boolean @default(false) // For enterprise mode
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members     GroupMember[]
+  prompts     GroupPrompt[]
+}
+
+model GroupMember {
+  id       String    @id @default(cuid())
+  groupId  String
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role     GroupRole @default(MEMBER)
+
+  joinedAt DateTime  @default(now())
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+}
+
+model GroupPrompt {
+  id       String @id @default(cuid())
+  groupId  String
+  group    Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  promptId String
+  prompt   Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  addedAt  DateTime @default(now())
+
+  @@unique([groupId, promptId])
+  @@index([groupId])
+}
+
+// ============================================
+// ANALYTICS & METRICS
+// ============================================
+
+model UserMetric {
+  id       String   @id @default(cuid())
+  userId   String   @unique
+
+  // Weekly metrics
+  votesThisWeek     Int @default(0)
+  promptsThisWeek   Int @default(0)
+  matchesThisWeek   Int @default(0)
+
+  // All-time metrics
+  totalVotes        Int @default(0)
+  totalPrompts      Int @default(0)
+  totalMatches      Int @default(0)
+  totalQueueSaves   Int @default(0)
+
+  weekStartedAt     DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// ============================================
+// HEATMAP CACHE (for performance)
+// ============================================
+
+model HeatmapCache {
+  id          String   @id @default(cuid())
+
+  // Grid cell identifier (for efficient geo queries)
+  gridLat     Float    // Rounded latitude
+  gridLng     Float    // Rounded longitude
+
+  promptId    String?  // Null = aggregate across all prompts
+
+  // Cached stats
+  totalVotes  Int      @default(0)
+  avgValue    Float    @default(0)
+  alignmentScore Float @default(0)
+
+  computedAt  DateTime @default(now())
+
+  @@unique([gridLat, gridLng, promptId])
+  @@index([gridLat, gridLng])
+}

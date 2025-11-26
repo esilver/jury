@@ -1,0 +1,38 @@
+import type { Metadata, Viewport } from 'next'
+import './globals.css'
+import { Providers } from './providers'
+
+export const metadata: Metadata = {
+  title: 'Jury - Find Your People',
+  description: 'Opinion-based social matching platform. Vote on prompts, discover alignment, meet like-minded people.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Jury',
+  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#0f172a',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body className="font-sans bg-jury-background text-white antialiased">
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
+  )
+}
