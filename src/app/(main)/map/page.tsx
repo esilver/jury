@@ -31,24 +31,34 @@ interface HeatmapData {
   }
 }
 
+// Default to NYC for demo purposes
+const DEFAULT_LAT = 40.7128
+const DEFAULT_LNG = -74.006
+
 export default function MapPage() {
   const { latitude, longitude, granted, requestLocation, loading: locationLoading } = useLocation()
   const [radiusMiles, setRadiusMiles] = useState(20)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [radiusName, setRadiusName] = useState('')
+  const [useDefaultLocation, setUseDefaultLocation] = useState(false)
+
+  // Use actual location if granted, otherwise use default if enabled
+  const mapLat = granted && latitude ? latitude : useDefaultLocation ? DEFAULT_LAT : null
+  const mapLng = granted && longitude ? longitude : useDefaultLocation ? DEFAULT_LNG : null
+  const showMap = mapLat !== null && mapLng !== null
 
   // Fetch heatmap data
   const { data, isLoading } = useQuery({
-    queryKey: ['heatmap', latitude, longitude, radiusMiles],
+    queryKey: ['heatmap', mapLat, mapLng, radiusMiles],
     queryFn: async () => {
-      if (!latitude || !longitude) return null
+      if (!mapLat || !mapLng) return null
       const res = await fetch(
-        `/api/heatmap?lat=${latitude}&lng=${longitude}&radius=${radiusMiles}`
+        `/api/heatmap?lat=${mapLat}&lng=${mapLng}&radius=${radiusMiles}`
       )
       if (!res.ok) throw new Error('Failed to fetch heatmap')
       return res.json() as Promise<HeatmapData>
     },
-    enabled: !!latitude && !!longitude,
+    enabled: showMap,
   })
 
   const handleSaveRadius = async () => {
@@ -72,7 +82,7 @@ export default function MapPage() {
     }
   }
 
-  if (!granted) {
+  if (!showMap) {
     return (
       <div className="min-h-screen">
         <Header title="Good Company Map" showLogo={false} />
@@ -88,13 +98,20 @@ export default function MapPage() {
             <button
               onClick={requestLocation}
               disabled={locationLoading}
-              className="btn-primary"
+              className="btn-primary w-full"
             >
               {locationLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 'Enable Location'
               )}
+            </button>
+            <div className="text-gray-500 text-sm">or</div>
+            <button
+              onClick={() => setUseDefaultLocation(true)}
+              className="w-full py-2 rounded-lg bg-jury-surface-light hover:bg-gray-600 transition-colors text-sm"
+            >
+              Use Demo Location (NYC)
             </button>
           </div>
         </main>
@@ -152,8 +169,8 @@ export default function MapPage() {
             </div>
           ) : (
             <JuryMap
-              centerLat={latitude!}
-              centerLng={longitude!}
+              centerLat={mapLat!}
+              centerLng={mapLng!}
               radiusMiles={radiusMiles}
               points={data?.points || []}
               userCount={data?.stats.userCount || 0}
