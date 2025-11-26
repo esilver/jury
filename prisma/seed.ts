@@ -275,35 +275,84 @@ async function main() {
   }
   console.log(`Created ${commentCount} comments`)
 
-  // Create some matches based on voting similarity
+  // Create matches between users based on voting similarity
   console.log('Creating matches...')
   let matchCount = 0
 
-  // Create matches between demo user and some simulated users
-  const potentialMatches = simulatedUsers.slice(0, 15)
-
-  for (const simUser of potentialMatches) {
-    const score = randomBetween(0.5, 0.95)
-
-    const existingMatch = await prisma.match.findFirst({
-      where: {
-        OR: [
-          { user1Id: demoUser.id, user2Id: simUser.id },
-          { user1Id: simUser.id, user2Id: demoUser.id },
-        ],
+  // Get all existing users (including any manually registered users)
+  // Real users are those who don't have @example.com emails (simulated users use @example.com)
+  const allRealUsers = await prisma.user.findMany({
+    where: {
+      NOT: {
+        email: { endsWith: '@example.com' },
       },
-    })
+    },
+    select: { id: true, name: true, email: true },
+  })
 
-    if (!existingMatch) {
-      await prisma.match.create({
-        data: {
-          user1Id: demoUser.id,
-          user2Id: simUser.id,
-          type: 'SIMILAR',
-          score,
+  console.log(`Found ${allRealUsers.length} real users to create matches for`)
+
+  // Create matches between ALL real users and simulated users
+  for (const realUser of allRealUsers) {
+    // Each real user gets matches with 15-25 random simulated users
+    const shuffledSimUsers = [...simulatedUsers].sort(() => Math.random() - 0.5)
+    const numMatches = Math.floor(Math.random() * 11) + 15 // 15-25 matches
+    const usersToMatch = shuffledSimUsers.slice(0, numMatches)
+
+    for (const simUser of usersToMatch) {
+      const score = randomBetween(0.5, 0.95)
+      const matchType = Math.random() > 0.8 ? 'OPPOSITE' : 'SIMILAR'
+
+      const existingMatch = await prisma.match.findFirst({
+        where: {
+          OR: [
+            { user1Id: realUser.id, user2Id: simUser.id },
+            { user1Id: simUser.id, user2Id: realUser.id },
+          ],
         },
       })
-      matchCount++
+
+      if (!existingMatch) {
+        await prisma.match.create({
+          data: {
+            user1Id: realUser.id,
+            user2Id: simUser.id,
+            type: matchType,
+            score,
+          },
+        })
+        matchCount++
+      }
+    }
+  }
+
+  // Also create some matches between simulated users for richer demo data
+  const simUserPairs = 30 // Create 30 random matches between simulated users
+  for (let i = 0; i < simUserPairs; i++) {
+    const user1 = randomElement(simulatedUsers)
+    const user2 = randomElement(simulatedUsers.filter((u) => u.id !== user1.id))
+
+    if (user1 && user2) {
+      const existingMatch = await prisma.match.findFirst({
+        where: {
+          OR: [
+            { user1Id: user1.id, user2Id: user2.id },
+            { user1Id: user2.id, user2Id: user1.id },
+          ],
+        },
+      })
+
+      if (!existingMatch) {
+        await prisma.match.create({
+          data: {
+            user1Id: user1.id,
+            user2Id: user2.id,
+            type: Math.random() > 0.7 ? 'OPPOSITE' : 'SIMILAR',
+            score: randomBetween(0.5, 0.95),
+          },
+        })
+        matchCount++
+      }
     }
   }
   console.log(`Created ${matchCount} matches`)
@@ -331,6 +380,7 @@ async function main() {
 Summary:
 - 1 demo user (demo@jury.app / password123)
 - ${simulatedUsers.length} simulated users
+- ${allRealUsers.length} real users received matches
 - ${createdPrompts.length} prompts
 - ${voteCount} votes
 - ${commentCount} comments
