@@ -42,7 +42,7 @@ export function BottomNav() {
                   <Icon className="w-6 h-6 text-white" strokeWidth={2} />
                 </div>
                 <span className={`text-[10px] mt-1.5 font-medium transition-colors ${
-                  isActive ? 'text-jury-primary' : 'text-gray-500'
+                  isActive ? 'text-jury-primary' : 'text-slate-500'
                 }`}>
                   {label}
                 </span>
@@ -58,13 +58,13 @@ export function BottomNav() {
             >
               <div className={`
                 relative p-2 rounded-xl transition-all duration-200
-                ${isActive ? 'bg-jury-primary/10' : 'group-hover:bg-jury-surface-light/50'}
+                ${isActive ? 'bg-jury-primary/10' : 'group-hover:bg-slate-100'}
               `}>
                 <Icon
                   className={`w-5 h-5 transition-all duration-200 ${
                     isActive
                       ? 'text-jury-primary'
-                      : 'text-gray-500 group-hover:text-gray-300'
+                      : 'text-slate-500 group-hover:text-slate-700'
                   }`}
                   strokeWidth={isActive ? 2.5 : 2}
                 />
@@ -73,7 +73,7 @@ export function BottomNav() {
                 )}
               </div>
               <span className={`text-[10px] mt-1 font-medium transition-colors ${
-                isActive ? 'text-jury-primary' : 'text-gray-500 group-hover:text-gray-400'
+                isActive ? 'text-jury-primary' : 'text-slate-500 group-hover:text-slate-600'
               }`}>
                 {label}
               </span>

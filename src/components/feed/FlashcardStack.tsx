@@ -161,7 +161,7 @@ export function FlashcardStack({ prompts, onVote, onSkip, onSave }: FlashcardSta
 
       {/* Swipe hints */}
       <div className="absolute -bottom-12 left-0 right-0 flex items-center justify-between px-4">
-        <div className="flex items-center gap-2 text-gray-500 text-sm">
+        <div className="flex items-center gap-2 text-slate-500 text-sm">
           <ChevronLeft className="w-4 h-4" />
           <span>Skip</span>
         </div>
@@ -174,13 +174,13 @@ export function FlashcardStack({ prompts, onVote, onSkip, onSave }: FlashcardSta
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 i === currentIndex % 5
                   ? 'w-6 bg-jury-primary'
-                  : 'w-1.5 bg-gray-600'
+                  : 'w-1.5 bg-slate-300'
               }`}
             />
           ))}
         </div>
 
-        <div className="flex items-center gap-2 text-gray-500 text-sm">
+        <div className="flex items-center gap-2 text-slate-500 text-sm">
           <span>Save</span>
           <ChevronRight className="w-4 h-4" />
         </div>

@@ -34,20 +34,20 @@ export function Header({
             </Link>
           )}
           {title && !showLogo && (
-            <h1 className="font-semibold text-lg text-white">{title}</h1>
+            <h1 className="font-semibold text-lg text-slate-800">{title}</h1>
           )}
         </div>
 
         <div className="flex items-center gap-1">
           {showNotifications && (
             <button className="icon-btn relative group">
-              <Bell className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+              <Bell className="w-5 h-5 text-slate-500 group-hover:text-slate-800 transition-colors" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-jury-primary rounded-full animate-pulse" />
             </button>
           )}
           {showSettings && (
             <Link href="/settings" className="icon-btn group">
-              <Settings className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+              <Settings className="w-5 h-5 text-slate-500 group-hover:text-slate-800 transition-colors" />
             </Link>
           )}
         </div>

@@ -18,7 +18,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#0f172a',
+  themeColor: '#f8fafc',
 }
 
 export default function RootLayout({
@@ -36,7 +36,7 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className="font-sans bg-jury-background text-white antialiased">
+      <body className="font-sans bg-jury-background text-slate-800 antialiased">
         <Providers>
           {children}
         </Providers>

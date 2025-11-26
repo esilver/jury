@@ -42,12 +42,12 @@ module.exports = {
           'secondary-light': '#a78bfa',
           'secondary-dark': '#7c3aed',
 
-          // Background colors
-          background: '#0f172a',
-          'background-light': '#1e293b',
-          surface: '#1e293b',
-          'surface-light': '#334155',
-          'surface-dark': '#0f172a',
+          // Background colors (Light Mode)
+          background: '#f8fafc',
+          'background-light': '#ffffff',
+          surface: '#ffffff',
+          'surface-light': '#f1f5f9',
+          'surface-dark': '#e2e8f0',
         },
       },
       backgroundImage: {
@@ -56,7 +56,7 @@ module.exports = {
         'gradient-primary': 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
         'gradient-approve': 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)',
         'gradient-disapprove': 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
-        'gradient-surface': 'linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)',
+        'gradient-surface': 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
         'shimmer': 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)',
       },
       boxShadow: {
@@ -64,8 +64,8 @@ module.exports = {
         'glow-approve': '0 0 20px rgba(34, 197, 94, 0.3)',
         'glow-disapprove': '0 0 20px rgba(239, 68, 68, 0.3)',
         'glow-secondary': '0 0 20px rgba(139, 92, 246, 0.3)',
-        'card': '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3)',
-        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3), 0 0 40px rgba(59, 130, 246, 0.1)',
+        'card': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1), 0 0 40px rgba(59, 130, 246, 0.1)',
         'button': '0 4px 14px rgba(59, 130, 246, 0.4)',
         'button-hover': '0 6px 20px rgba(59, 130, 246, 0.5)',
         'inner-light': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',

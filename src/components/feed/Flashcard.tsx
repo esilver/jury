@@ -96,7 +96,7 @@ export function Flashcard({ prompt, onVote, showResults = false, userVote }: Fla
 
         {/* Prompt Text */}
         <div className="flex-1 flex items-center justify-center py-4">
-          <h2 className="text-2xl font-semibold text-center leading-relaxed text-white">
+          <h2 className="text-2xl font-semibold text-center leading-relaxed text-slate-800">
             {prompt.text}
           </h2>
         </div>
@@ -105,7 +105,7 @@ export function Flashcard({ prompt, onVote, showResults = false, userVote }: Fla
         {prompt.type === 'TWO_POLE' && prompt.poleLeft && prompt.poleRight && (
           <div className="flex justify-between items-center px-2 py-3 mb-4 rounded-xl bg-jury-surface-light/30">
             <span className="text-sm text-jury-disapprove-light font-medium">{prompt.poleLeft}</span>
-            <div className="flex-1 mx-4 h-px bg-gradient-to-r from-jury-disapprove via-gray-600 to-jury-approve" />
+            <div className="flex-1 mx-4 h-px bg-gradient-to-r from-jury-disapprove via-slate-300 to-jury-approve" />
             <span className="text-sm text-jury-approve-light font-medium">{prompt.poleRight}</span>
           </div>
         )}
@@ -147,7 +147,7 @@ export function Flashcard({ prompt, onVote, showResults = false, userVote }: Fla
 
             {/* User Vote Indicator */}
             <div className="text-center">
-              <span className="text-sm text-gray-400">You voted </span>
+              <span className="text-sm text-slate-500">You voted </span>
               <span
                 className={`text-sm font-semibold ${
                   userVote && userVote > 0 ? 'text-jury-approve' : 'text-jury-disapprove'
@@ -204,7 +204,7 @@ export function Flashcard({ prompt, onVote, showResults = false, userVote }: Fla
             <Share2 className="w-5 h-5 text-gray-500 group-hover:text-jury-primary transition-colors" />
           </button>
           <button className="icon-btn group">
-            <MoreHorizontal className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
+            <MoreHorizontal className="w-5 h-5 text-slate-500 group-hover:text-slate-800 transition-colors" />
           </button>
         </div>
       </div>
@@ -256,7 +256,7 @@ function MultiChoiceOptions({ choices, mode, onVote, disabled }: MultiChoiceOpti
             w-full p-4 rounded-xl text-left transition-all duration-200
             ${selected.has(choice.id)
               ? 'bg-jury-primary/15 border-2 border-jury-primary shadow-glow-primary'
-              : 'bg-jury-surface-light/40 border-2 border-transparent hover:border-gray-600 hover:bg-jury-surface-light/60'
+              : 'bg-jury-surface-light border-2 border-transparent hover:border-slate-300 hover:bg-jury-surface-dark'
             }
           `}
         >
@@ -265,14 +265,14 @@ function MultiChoiceOptions({ choices, mode, onVote, disabled }: MultiChoiceOpti
               w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
               ${selected.has(choice.id)
                 ? 'border-jury-primary bg-jury-primary'
-                : 'border-gray-500'
+                : 'border-slate-400'
               }
             `}>
               {selected.has(choice.id) && (
                 <div className="w-2 h-2 bg-white rounded-full" />
               )}
             </div>
-            <span className={`font-medium ${selected.has(choice.id) ? 'text-white' : 'text-gray-300'}`}>
+            <span className={`font-medium ${selected.has(choice.id) ? 'text-slate-800' : 'text-slate-600'}`}>
               {choice.text}
             </span>
           </div>

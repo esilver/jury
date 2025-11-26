@@ -96,7 +96,7 @@ export default function FeedPage() {
             }}
             className="icon-btn"
           >
-            <RefreshCw className="w-5 h-5 text-gray-400" />
+            <RefreshCw className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
@@ -112,7 +112,7 @@ export default function FeedPage() {
                 <div className="absolute inset-0 bg-jury-primary/20 rounded-full blur-xl animate-pulse" />
                 <Loader2 className="w-12 h-12 animate-spin text-jury-primary relative" />
               </div>
-              <p className="mt-4 text-gray-400">Loading prompts...</p>
+              <p className="mt-4 text-slate-500">Loading prompts...</p>
             </motion.div>
           ) : availablePrompts.length === 0 ? (
             <motion.div
@@ -123,8 +123,8 @@ export default function FeedPage() {
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-jury-primary/20 to-jury-secondary/20 flex items-center justify-center">
                 <Scale className="w-10 h-10 text-jury-primary animate-float" />
               </div>
-              <h2 className="text-xl font-semibold mb-3 text-white">All caught up!</h2>
-              <p className="text-gray-400 mb-6 max-w-xs mx-auto">
+              <h2 className="text-xl font-semibold mb-3 text-slate-800">All caught up!</h2>
+              <p className="text-slate-500 mb-6 max-w-xs mx-auto">
                 You&apos;ve seen all the prompts. Check back later or create your own!
               </p>
               <button

@@ -92,7 +92,7 @@ export default function RegisterPage() {
               <span className="text-gradient-primary">Jury</span>
             </h1>
           </div>
-          <p className="text-gray-400 text-lg">Join and discover your community</p>
+          <p className="text-slate-500 text-lg">Join and discover your community</p>
         </motion.div>
 
         {/* Register Form */}
@@ -104,11 +104,11 @@ export default function RegisterPage() {
         >
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-                Name <span className="text-gray-500">(optional)</span>
+              <label htmlFor="name" className="block text-sm font-medium text-slate-600">
+                Name <span className="text-slate-400">(optional)</span>
               </label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   id="name"
                   type="text"
@@ -121,11 +121,11 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-600">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   id="email"
                   type="email"
@@ -139,11 +139,11 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-600">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   id="password"
                   type="password"
@@ -157,11 +157,11 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-600">
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   id="confirmPassword"
                   type="password"
@@ -202,7 +202,7 @@ export default function RegisterPage() {
 
           <div className="divider my-6" />
 
-          <p className="text-center text-sm text-gray-400">
+          <p className="text-center text-sm text-slate-500">
             Already have an account?{' '}
             <Link
               href="/login"
@@ -218,20 +218,20 @@ export default function RegisterPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="flex items-center justify-center gap-6 text-sm text-gray-500"
+          className="flex items-center justify-center gap-6 text-sm text-slate-500"
         >
           <div className="flex items-center gap-1.5">
             <Users className="w-4 h-4 text-jury-primary" />
             <span>Find your tribe</span>
           </div>
-          <div className="w-1 h-1 bg-gray-600 rounded-full" />
+          <div className="w-1 h-1 bg-slate-300 rounded-full" />
           <div className="flex items-center gap-1.5">
             <Shield className="w-4 h-4 text-jury-approve" />
             <span>Privacy first</span>
           </div>
         </motion.div>
 
-        <p className="text-xs text-gray-500 text-center px-4">
+        <p className="text-xs text-slate-500 text-center px-4">
           By creating an account, you agree to share your opinions with others in your area.
         </p>
       </div>
