@@ -2,7 +2,16 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreHorizontal, Image as ImageIcon } from 'lucide-react'
+import {
+  ThumbsUp,
+  ThumbsDown,
+  MessageCircle,
+  Share2,
+  MoreHorizontal,
+  Image as ImageIcon,
+  Sparkles,
+  TrendingUp,
+} from 'lucide-react'
 import type { PromptWithStats } from '@/types'
 
 interface FlashcardProps {
@@ -27,11 +36,25 @@ export function Flashcard({ prompt, onVote, showResults = false, userVote }: Fla
 
   const hasMedia = prompt.mediaAttachments && prompt.mediaAttachments.length > 0
 
+  const getTypeLabel = () => {
+    switch (prompt.type) {
+      case 'STATEMENT':
+        return { label: 'Statement', icon: Sparkles }
+      case 'TWO_POLE':
+        return { label: 'Spectrum', icon: TrendingUp }
+      default:
+        return { label: 'Multi-Choice', icon: MessageCircle }
+    }
+  }
+
+  const typeInfo = getTypeLabel()
+  const TypeIcon = typeInfo.icon
+
   return (
-    <div className="card-base h-full flex flex-col">
+    <div className="card-base h-full flex flex-col overflow-hidden">
       {/* Media Preview */}
       {hasMedia && (
-        <div className="relative h-48 bg-jury-surface-light rounded-t-2xl overflow-hidden">
+        <div className="relative h-52 bg-gradient-to-br from-jury-surface-light to-jury-surface overflow-hidden">
           {prompt.mediaAttachments[0].type === 'image' ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -49,40 +72,41 @@ export function Flashcard({ prompt, onVote, showResults = false, userVote }: Fla
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <ImageIcon className="w-12 h-12 text-gray-500" />
+              <ImageIcon className="w-12 h-12 text-gray-600" />
             </div>
           )}
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-jury-surface via-transparent to-transparent" />
         </div>
       )}
 
       {/* Content */}
       <div className="flex-1 p-6 flex flex-col">
-        {/* Prompt Type Badge */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs px-2 py-1 rounded-full bg-jury-surface-light text-gray-400">
-            {prompt.type === 'STATEMENT'
-              ? 'Statement'
-              : prompt.type === 'TWO_POLE'
-              ? 'Spectrum'
-              : 'Multi-Choice'}
-          </span>
-          <span className="text-xs text-gray-500">
+        {/* Header with badge and vote count */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="badge-primary">
+            <TypeIcon className="w-3 h-3" />
+            {typeInfo.label}
+          </div>
+          <span className="text-sm text-gray-500 flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5" />
             {prompt.voteCount} vote{prompt.voteCount !== 1 ? 's' : ''}
           </span>
         </div>
 
         {/* Prompt Text */}
-        <div className="flex-1 flex items-center justify-center">
-          <h2 className="text-2xl font-semibold text-center leading-tight">
+        <div className="flex-1 flex items-center justify-center py-4">
+          <h2 className="text-2xl font-semibold text-center leading-relaxed text-white">
             {prompt.text}
           </h2>
         </div>
 
         {/* Two-Pole Labels */}
         {prompt.type === 'TWO_POLE' && prompt.poleLeft && prompt.poleRight && (
-          <div className="flex justify-between text-sm text-gray-400 mt-4">
-            <span>{prompt.poleLeft}</span>
-            <span>{prompt.poleRight}</span>
+          <div className="flex justify-between items-center px-2 py-3 mb-4 rounded-xl bg-jury-surface-light/30">
+            <span className="text-sm text-jury-disapprove-light font-medium">{prompt.poleLeft}</span>
+            <div className="flex-1 mx-4 h-px bg-gradient-to-r from-jury-disapprove via-gray-600 to-jury-approve" />
+            <span className="text-sm text-jury-approve-light font-medium">{prompt.poleRight}</span>
           </div>
         )}
 
@@ -91,35 +115,51 @@ export function Flashcard({ prompt, onVote, showResults = false, userVote }: Fla
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 space-y-3"
+            className="mt-4 space-y-4"
           >
-            {/* Bar Chart */}
-            <div className="h-8 flex rounded-lg overflow-hidden">
-              <div
-                className="bg-jury-disapprove flex items-center justify-center text-sm font-medium"
-                style={{ width: `${prompt.disapprovePercent || 50}%` }}
+            {/* Results Bar */}
+            <div className="relative h-12 flex rounded-2xl overflow-hidden shadow-inner">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${prompt.disapprovePercent || 50}%` }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="bg-gradient-to-r from-jury-disapprove to-jury-disapprove-light flex items-center justify-center relative"
               >
-                {prompt.disapprovePercent}%
-              </div>
-              <div
-                className="bg-jury-approve flex items-center justify-center text-sm font-medium"
-                style={{ width: `${prompt.approvePercent || 50}%` }}
+                {(prompt.disapprovePercent || 0) >= 20 && (
+                  <span className="text-sm font-bold text-white drop-shadow-lg">
+                    {prompt.disapprovePercent}%
+                  </span>
+                )}
+              </motion.div>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${prompt.approvePercent || 50}%` }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="bg-gradient-to-r from-jury-approve-light to-jury-approve flex items-center justify-center relative"
               >
-                {prompt.approvePercent}%
-              </div>
+                {(prompt.approvePercent || 0) >= 20 && (
+                  <span className="text-sm font-bold text-white drop-shadow-lg">
+                    {prompt.approvePercent}%
+                  </span>
+                )}
+              </motion.div>
             </div>
 
-            {/* User Position Indicator */}
-            <div className="text-center text-sm">
-              <span className="text-gray-400">You voted </span>
-              <span className={userVote && userVote > 0 ? 'text-jury-approve' : 'text-jury-disapprove'}>
+            {/* User Vote Indicator */}
+            <div className="text-center">
+              <span className="text-sm text-gray-400">You voted </span>
+              <span
+                className={`text-sm font-semibold ${
+                  userVote && userVote > 0 ? 'text-jury-approve' : 'text-jury-disapprove'
+                }`}
+              >
                 {userVote && userVote > 0 ? 'Approve' : 'Disapprove'}
               </span>
             </div>
           </motion.div>
         )}
 
-        {/* Vote Buttons (only show if not showing results) */}
+        {/* Vote Buttons */}
         {!showResults && (
           <div className="mt-6">
             {prompt.type === 'MULTI_CHOICE' && prompt.choices ? (
@@ -134,18 +174,18 @@ export function Flashcard({ prompt, onVote, showResults = false, userVote }: Fla
                 <button
                   onClick={() => handleVote(-1)}
                   disabled={voting}
-                  className="btn-disapprove flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="btn-disapprove flex-1 flex items-center justify-center gap-2.5 py-4"
                 >
                   <ThumbsDown className="w-5 h-5" />
-                  Disapprove
+                  <span>Disapprove</span>
                 </button>
                 <button
                   onClick={() => handleVote(1)}
                   disabled={voting}
-                  className="btn-approve flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="btn-approve flex-1 flex items-center justify-center gap-2.5 py-4"
                 >
                   <ThumbsUp className="w-5 h-5" />
-                  Approve
+                  <span>Approve</span>
                 </button>
               </div>
             )}
@@ -154,16 +194,19 @@ export function Flashcard({ prompt, onVote, showResults = false, userVote }: Fla
       </div>
 
       {/* Footer Actions */}
-      <div className="px-6 pb-4 flex items-center justify-between border-t border-jury-surface-light pt-4">
-        <button className="p-2 hover:bg-jury-surface-light rounded-lg transition-colors">
-          <MessageCircle className="w-5 h-5 text-gray-400" />
-        </button>
-        <button className="p-2 hover:bg-jury-surface-light rounded-lg transition-colors">
-          <Share2 className="w-5 h-5 text-gray-400" />
-        </button>
-        <button className="p-2 hover:bg-jury-surface-light rounded-lg transition-colors">
-          <MoreHorizontal className="w-5 h-5 text-gray-400" />
-        </button>
+      <div className="px-6 pb-5 pt-4">
+        <div className="divider mb-4" />
+        <div className="flex items-center justify-between">
+          <button className="icon-btn group">
+            <MessageCircle className="w-5 h-5 text-gray-500 group-hover:text-jury-primary transition-colors" />
+          </button>
+          <button className="icon-btn group">
+            <Share2 className="w-5 h-5 text-gray-500 group-hover:text-jury-primary transition-colors" />
+          </button>
+          <button className="icon-btn group">
+            <MoreHorizontal className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -197,8 +240,6 @@ function MultiChoiceOptions({ choices, mode, onVote, disabled }: MultiChoiceOpti
 
   const handleSubmit = async () => {
     if (selected.size === 0) return
-    // For multi-choice, we encode the selection differently
-    // This is a simplified version - actual implementation would be more complex
     await onVote(0)
   }
 
@@ -211,24 +252,43 @@ function MultiChoiceOptions({ choices, mode, onVote, disabled }: MultiChoiceOpti
           key={choice.id}
           onClick={() => handleSelect(choice.id)}
           disabled={disabled}
-          className={`w-full p-3 rounded-lg border-2 transition-all text-left ${
-            selected.has(choice.id)
-              ? 'border-jury-primary bg-jury-primary/10'
-              : 'border-jury-surface-light hover:border-gray-500'
-          }`}
+          className={`
+            w-full p-4 rounded-xl text-left transition-all duration-200
+            ${selected.has(choice.id)
+              ? 'bg-jury-primary/15 border-2 border-jury-primary shadow-glow-primary'
+              : 'bg-jury-surface-light/40 border-2 border-transparent hover:border-gray-600 hover:bg-jury-surface-light/60'
+            }
+          `}
         >
-          {choice.text}
+          <div className="flex items-center gap-3">
+            <div className={`
+              w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
+              ${selected.has(choice.id)
+                ? 'border-jury-primary bg-jury-primary'
+                : 'border-gray-500'
+              }
+            `}>
+              {selected.has(choice.id) && (
+                <div className="w-2 h-2 bg-white rounded-full" />
+              )}
+            </div>
+            <span className={`font-medium ${selected.has(choice.id) ? 'text-white' : 'text-gray-300'}`}>
+              {choice.text}
+            </span>
+          </div>
         </button>
       ))}
 
       {selected.size > 0 && (
-        <button
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           onClick={handleSubmit}
           disabled={disabled}
-          className="btn-primary w-full"
+          className="btn-primary w-full mt-4"
         >
-          Submit
-        </button>
+          Submit Choice{selected.size > 1 ? 's' : ''}
+        </motion.button>
       )}
     </div>
   )

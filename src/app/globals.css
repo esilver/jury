@@ -2,77 +2,137 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Leaflet map overrides */
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  min-height: 400px;
-  background: #1e293b;
-  border-radius: 1rem;
-  z-index: 0;
-}
-
-.leaflet-popup-content-wrapper {
-  background: #1e293b;
-  color: white;
-  border-radius: 0.5rem;
-}
-
-.leaflet-popup-tip {
-  background: #1e293b;
-}
-
-.leaflet-popup-content {
-  margin: 12px;
-}
-
-.leaflet-control-attribution {
-  background: rgba(30, 41, 59, 0.8) !important;
-  color: #9ca3af !important;
-  font-size: 10px;
-}
-
-.leaflet-control-attribution a {
-  color: #60a5fa !important;
-}
-
+/* ============================================
+   DESIGN SYSTEM - CSS VARIABLES
+   ============================================ */
 :root {
+  /* Core Colors */
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 15, 23, 42;
   --background-end-rgb: 30, 41, 59;
+
+  /* Gradient Colors */
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  --gradient-approve: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+  --gradient-disapprove: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+  --gradient-surface: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+
+  /* Glow Effects */
+  --glow-primary: 0 0 20px rgba(59, 130, 246, 0.3);
+  --glow-approve: 0 0 20px rgba(34, 197, 94, 0.3);
+  --glow-disapprove: 0 0 20px rgba(239, 68, 68, 0.3);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+      180deg,
+      rgb(var(--background-start-rgb)) 0%,
+      rgb(var(--background-end-rgb)) 50%,
+      rgb(var(--background-start-rgb)) 100%
+    );
+  background-attachment: fixed;
   min-height: 100vh;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
+/* Selection Style */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: white;
+}
+
+/* ============================================
+   SCROLLBAR STYLES
+   ============================================ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: rgba(148, 163, 184, 0.5);
 }
 
-/* Flashcard animations */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+/* ============================================
+   LEAFLET MAP OVERRIDES
+   ============================================ */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  background: #1e293b;
+  border-radius: 1.5rem;
+  z-index: 0;
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(12px);
+  color: white;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: var(--shadow-xl);
+}
+
+.leaflet-popup-tip {
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.leaflet-popup-content {
+  margin: 14px 16px;
+  font-size: 14px;
+}
+
+.leaflet-control-attribution {
+  background: rgba(30, 41, 59, 0.8) !important;
+  backdrop-filter: blur(8px);
+  color: #9ca3af !important;
+  font-size: 10px;
+  border-radius: 4px;
+}
+
+.leaflet-control-attribution a {
+  color: #60a5fa !important;
+}
+
+/* ============================================
+   ANIMATIONS & KEYFRAMES
+   ============================================ */
+
+/* Flashcard Animations */
 @keyframes cardSlideIn {
   from {
     transform: translateX(100%) rotate(5deg);
@@ -106,6 +166,45 @@ body {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .card-slide-in {
   animation: cardSlideIn 0.3s ease-out;
 }
@@ -118,56 +217,456 @@ body {
   animation: cardSlideOutRight 0.3s ease-out forwards;
 }
 
-/* Vote button press effects */
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* ============================================
+   BUTTON EFFECTS
+   ============================================ */
+.vote-btn-approve {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .vote-btn-approve:active {
-  background-color: #16a34a;
   transform: scale(0.95);
+}
+
+.vote-btn-approve:hover {
+  box-shadow: var(--glow-approve);
+}
+
+.vote-btn-approve::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.vote-btn-approve:hover::after {
+  opacity: 1;
+}
+
+.vote-btn-disapprove {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .vote-btn-disapprove:active {
-  background-color: #dc2626;
   transform: scale(0.95);
 }
 
-/* Heatmap gradient */
+.vote-btn-disapprove:hover {
+  box-shadow: var(--glow-disapprove);
+}
+
+.vote-btn-disapprove::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.vote-btn-disapprove:hover::after {
+  opacity: 1;
+}
+
+/* ============================================
+   SPECIAL ELEMENTS
+   ============================================ */
+
+/* Heatmap Gradient */
 .heatmap-gradient {
   background: linear-gradient(
     to right,
     #ef4444 0%,
-    #fbbf24 25%,
-    #84cc16 50%,
-    #22c55e 75%,
+    #f97316 20%,
+    #eab308 40%,
+    #84cc16 60%,
+    #22c55e 80%,
     #10b981 100%
   );
 }
 
-/* Touch-friendly sizing */
+/* Glass Effect */
+.glass {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.glass-strong {
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+/* Progress Bars */
+.progress-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* Range Slider Custom Styles */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-track {
+  background: rgba(51, 65, 85, 0.8);
+  border-radius: 9999px;
+  height: 6px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border-radius: 50%;
+  height: 18px;
+  width: 18px;
+  margin-top: -6px;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.6);
+}
+
+input[type="range"]::-moz-range-track {
+  background: rgba(51, 65, 85, 0.8);
+  border-radius: 9999px;
+  height: 6px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 50%;
+  height: 18px;
+  width: 18px;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.6);
+}
+
+/* ============================================
+   UTILITY LAYER
+   ============================================ */
 @layer utilities {
   .touch-target {
     min-width: 44px;
     min-height: 44px;
   }
+
+  .text-gradient-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-approve {
+    background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-gradient {
+    border: 1px solid transparent;
+    background: linear-gradient(var(--background), var(--background)) padding-box,
+                linear-gradient(135deg, #3b82f6, #8b5cf6) border-box;
+  }
 }
 
-/* Mobile-first responsive helpers */
+/* ============================================
+   COMPONENT LAYER
+   ============================================ */
 @layer components {
+  /* Card Base */
   .card-base {
-    @apply bg-jury-surface rounded-2xl shadow-lg border border-jury-surface-light;
+    @apply bg-gradient-to-b from-jury-surface/90 to-jury-surface rounded-2xl;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    backdrop-filter: blur(8px);
   }
 
+  .card-base-interactive {
+    @apply card-base transition-all duration-300;
+  }
+
+  .card-base-interactive:hover {
+    box-shadow: var(--shadow-xl), var(--shadow-glow);
+    transform: translateY(-2px);
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+
+  /* Primary Button */
   .btn-primary {
-    @apply bg-jury-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors touch-target;
+    @apply relative overflow-hidden font-semibold py-3 px-6 rounded-xl transition-all duration-300 touch-target;
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
   }
 
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  }
+
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+    border-radius: inherit;
+  }
+
+  /* Secondary Button */
+  .btn-secondary {
+    @apply relative font-medium py-3 px-6 rounded-xl transition-all duration-300 touch-target;
+    @apply bg-jury-surface-light/50 hover:bg-jury-surface-light;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .btn-secondary:hover {
+    border-color: rgba(148, 163, 184, 0.4);
+  }
+
+  /* Approve Button */
   .btn-approve {
-    @apply bg-jury-approve hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all touch-target;
+    @apply relative overflow-hidden font-bold py-3.5 px-6 rounded-xl transition-all duration-300 touch-target text-white vote-btn-approve;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
   }
 
+  .btn-approve:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.45);
+  }
+
+  .btn-approve:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Disapprove Button */
   .btn-disapprove {
-    @apply bg-jury-disapprove hover:bg-red-600 text-white font-bold py-3 px-6 rounded-xl transition-all touch-target;
+    @apply relative overflow-hidden font-bold py-3.5 px-6 rounded-xl transition-all duration-300 touch-target text-white vote-btn-disapprove;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
   }
 
+  .btn-disapprove:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+  }
+
+  .btn-disapprove:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Input Field */
   .input-field {
-    @apply w-full bg-jury-surface-light border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-jury-primary focus:border-transparent;
+    @apply w-full rounded-xl px-4 py-3.5 text-white transition-all duration-300;
+    @apply placeholder-gray-500 focus:outline-none;
+    background: rgba(51, 65, 85, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .input-field:hover {
+    border-color: rgba(148, 163, 184, 0.3);
+    background: rgba(51, 65, 85, 0.6);
+  }
+
+  .input-field:focus {
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    background: rgba(51, 65, 85, 0.7);
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+    background: rgba(51, 65, 85, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+  }
+
+  .badge-primary {
+    @apply badge;
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .badge-approve {
+    @apply badge;
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+
+  .badge-disapprove {
+    @apply badge;
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  /* Toggle Switch */
+  .toggle {
+    @apply relative w-12 h-7 rounded-full transition-colors duration-300 cursor-pointer;
+    background: rgba(51, 65, 85, 0.8);
+  }
+
+  .toggle.active {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  }
+
+  .toggle::after {
+    content: '';
+    @apply absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform duration-300;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .toggle.active::after {
+    transform: translateX(20px);
+  }
+
+  /* Avatar */
+  .avatar {
+    @apply relative flex items-center justify-center rounded-full overflow-hidden;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+  }
+
+  .avatar-sm { @apply w-8 h-8 text-sm; }
+  .avatar-md { @apply w-12 h-12 text-lg; }
+  .avatar-lg { @apply w-16 h-16 text-2xl; }
+  .avatar-xl { @apply w-20 h-20 text-3xl; }
+
+  /* Stat Card */
+  .stat-card {
+    @apply card-base p-4 text-center;
+  }
+
+  .stat-card .stat-value {
+    @apply text-2xl font-bold mb-1;
+  }
+
+  .stat-card .stat-label {
+    @apply text-xs text-gray-400 uppercase tracking-wider;
+  }
+
+  /* Tab */
+  .tab {
+    @apply flex-1 py-3 px-4 text-sm font-medium transition-all duration-300;
+    @apply border-b-2 border-transparent text-gray-400;
+  }
+
+  .tab:hover {
+    @apply text-gray-200;
+  }
+
+  .tab.active {
+    @apply text-jury-primary border-jury-primary;
+  }
+
+  /* Skeleton Loader */
+  .skeleton {
+    @apply rounded-lg animate-pulse;
+    background: linear-gradient(
+      90deg,
+      rgba(51, 65, 85, 0.4) 0%,
+      rgba(71, 85, 105, 0.4) 50%,
+      rgba(51, 65, 85, 0.4) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Divider */
+  .divider {
+    @apply h-px w-full;
+    background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.2) 50%, transparent 100%);
+  }
+
+  /* Icon Button */
+  .icon-btn {
+    @apply p-2.5 rounded-xl transition-all duration-200 touch-target;
+    @apply flex items-center justify-center;
+  }
+
+  .icon-btn:hover {
+    @apply bg-jury-surface-light/60;
+  }
+
+  .icon-btn:active {
+    transform: scale(0.95);
   }
 }

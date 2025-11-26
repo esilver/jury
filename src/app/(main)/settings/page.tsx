@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Header } from '@/components/layout/Header'
+import { motion } from 'framer-motion'
 import {
   Loader2,
   Bell,
@@ -14,6 +13,10 @@ import {
   Shield,
   Trash2,
   ArrowLeft,
+  Check,
+  Heart,
+  Zap,
+  RefreshCw,
 } from 'lucide-react'
 
 interface UserSettings {
@@ -24,14 +27,12 @@ interface UserSettings {
 
 export default function SettingsPage() {
   const router = useRouter()
-  const { data: session } = useSession()
   const [settings, setSettings] = useState<UserSettings>({
     alertsPositive: true,
     alertsNegative: true,
     alertVolume: 1.0,
   })
 
-  // Fetch current settings
   const { data, isLoading } = useQuery({
     queryKey: ['user-settings'],
     queryFn: async () => {
@@ -47,7 +48,6 @@ export default function SettingsPage() {
     }
   }, [data])
 
-  // Save settings mutation
   const saveMutation = useMutation({
     mutationFn: async (newSettings: UserSettings) => {
       const res = await fetch('/api/user/settings', {
@@ -70,87 +70,93 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="sticky top-0 z-40 bg-jury-background/80 backdrop-blur-lg border-b border-jury-surface-light">
-        <div className="flex items-center h-14 px-4 max-w-lg mx-auto">
+    <div className="min-h-screen pb-24">
+      {/* Custom Header */}
+      <div className="sticky top-0 z-50 glass-strong">
+        <div className="flex items-center h-16 px-4 max-w-lg mx-auto">
           <button
             onClick={() => router.back()}
-            className="p-2 -ml-2 hover:bg-jury-surface rounded-lg transition-colors"
+            className="icon-btn -ml-2"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="font-semibold text-lg ml-2">Settings</h1>
+          <h1 className="font-bold text-lg ml-3 text-white">Settings</h1>
         </div>
+        <div className="h-px bg-gradient-to-r from-transparent via-jury-primary/30 to-transparent" />
       </div>
 
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-lg mx-auto px-4 py-6 space-y-5">
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-jury-primary" />
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-10 h-10 animate-spin text-jury-primary" />
+            <p className="mt-4 text-gray-400">Loading settings...</p>
           </div>
         ) : (
           <>
             {/* Notification Settings */}
-            <div className="card-base p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <Bell className="w-5 h-5 text-jury-primary" />
-                <h2 className="font-semibold">Match Alerts</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card-base p-5"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-jury-primary/15 flex items-center justify-center">
+                  <Bell className="w-5 h-5 text-jury-primary" />
+                </div>
+                <h2 className="font-bold text-white">Match Alerts</h2>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
+                {/* Similar Matches Toggle */}
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Similar matches</p>
-                    <p className="text-sm text-gray-400">
-                      Alert when someone nearby shares your views
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <Heart className="w-5 h-5 text-jury-approve" />
+                    <div>
+                      <p className="font-medium text-white">Similar matches</p>
+                      <p className="text-sm text-gray-400">
+                        Alert for people who share your views
+                      </p>
+                    </div>
                   </div>
                   <button
                     onClick={() =>
                       handleSettingChange('alertsPositive', !settings.alertsPositive)
                     }
-                    className={`w-12 h-6 rounded-full transition-colors relative ${
-                      settings.alertsPositive ? 'bg-jury-approve' : 'bg-jury-surface-light'
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                        settings.alertsPositive ? 'left-7' : 'left-1'
-                      }`}
-                    />
-                  </button>
+                    className={`toggle ${settings.alertsPositive ? 'active' : ''}`}
+                  />
                 </div>
 
+                <div className="divider" />
+
+                {/* Opposite Matches Toggle */}
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Opposite matches</p>
-                    <p className="text-sm text-gray-400">
-                      Alert when someone nearby has opposite views
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <Zap className="w-5 h-5 text-jury-secondary" />
+                    <div>
+                      <p className="font-medium text-white">Opposite matches</p>
+                      <p className="text-sm text-gray-400">
+                        Alert for people with opposite views
+                      </p>
+                    </div>
                   </div>
                   <button
                     onClick={() =>
                       handleSettingChange('alertsNegative', !settings.alertsNegative)
                     }
-                    className={`w-12 h-6 rounded-full transition-colors relative ${
-                      settings.alertsNegative ? 'bg-jury-disapprove' : 'bg-jury-surface-light'
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                        settings.alertsNegative ? 'left-7' : 'left-1'
-                      }`}
-                    />
-                  </button>
+                    className={`toggle ${settings.alertsNegative ? 'active' : ''}`}
+                  />
                 </div>
 
+                <div className="divider" />
+
+                {/* Volume Slider */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-medium">Alert Volume</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="font-medium text-white">Alert Volume</p>
                     {settings.alertVolume > 0 ? (
-                      <Volume2 className="w-4 h-4 text-gray-400" />
+                      <Volume2 className="w-5 h-5 text-jury-primary" />
                     ) : (
-                      <VolumeX className="w-4 h-4 text-gray-400" />
+                      <VolumeX className="w-5 h-5 text-gray-500" />
                     )}
                   </div>
                   <input
@@ -162,34 +168,58 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       handleSettingChange('alertVolume', parseFloat(e.target.value))
                     }
-                    className="w-full h-2 bg-jury-surface-light rounded-lg appearance-none cursor-pointer"
+                    className="w-full"
                   />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Off</span>
+                    <span>Max</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Privacy Settings */}
-            <div className="card-base p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <Shield className="w-5 h-5 text-jury-secondary" />
-                <h2 className="font-semibold">Privacy</h2>
+            {/* Privacy Info */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="card-base p-5"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-jury-secondary/15 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-jury-secondary" />
+                </div>
+                <h2 className="font-bold text-white">Privacy</h2>
               </div>
 
-              <div className="space-y-3 text-sm text-gray-400">
-                <p>
-                  Your location is rounded to approximately 1km to protect your privacy.
-                </p>
-                <p>
-                  Your profile is anonymous until you choose to connect with matches.
-                </p>
+              <div className="space-y-4 text-sm text-gray-400">
+                <div className="flex items-start gap-3">
+                  <Check className="w-4 h-4 text-jury-approve mt-0.5 flex-shrink-0" />
+                  <p>Your location is rounded to approximately 1km to protect your privacy.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-4 h-4 text-jury-approve mt-0.5 flex-shrink-0" />
+                  <p>Your profile is anonymous until you choose to connect with matches.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-4 h-4 text-jury-approve mt-0.5 flex-shrink-0" />
+                  <p>Your votes are never shared publicly with your identity.</p>
+                </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Location Settings */}
-            <div className="card-base p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <MapPin className="w-5 h-5 text-jury-primary" />
-                <h2 className="font-semibold">Location</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="card-base p-5"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-jury-primary/15 flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-jury-primary" />
+                </div>
+                <h2 className="font-bold text-white">Location</h2>
               </div>
 
               <button
@@ -198,18 +228,30 @@ export default function SettingsPage() {
                     // Refresh location
                   })
                 }}
-                className="w-full py-2 px-4 rounded-lg bg-jury-surface hover:bg-jury-surface-light transition-colors text-left"
+                className="btn-secondary w-full flex items-center justify-center gap-2"
               >
+                <RefreshCw className="w-4 h-4" />
                 Refresh Location
               </button>
-            </div>
+            </motion.div>
 
             {/* Danger Zone */}
-            <div className="card-base p-4 border-red-500/30">
-              <div className="flex items-center gap-3 mb-4">
-                <Trash2 className="w-5 h-5 text-jury-disapprove" />
-                <h2 className="font-semibold text-jury-disapprove">Danger Zone</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="card-base p-5 border border-jury-disapprove/30"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-jury-disapprove/15 flex items-center justify-center">
+                  <Trash2 className="w-5 h-5 text-jury-disapprove" />
+                </div>
+                <h2 className="font-bold text-jury-disapprove">Danger Zone</h2>
               </div>
+
+              <p className="text-sm text-gray-400 mb-4">
+                Once you delete your account, there is no going back. Please be certain.
+              </p>
 
               <button
                 onClick={() => {
@@ -217,17 +259,22 @@ export default function SettingsPage() {
                     // Delete account
                   }
                 }}
-                className="w-full py-2 px-4 rounded-lg bg-jury-disapprove/20 hover:bg-jury-disapprove/30 text-jury-disapprove transition-colors"
+                className="w-full py-3 px-4 rounded-xl bg-jury-disapprove/15 hover:bg-jury-disapprove/25 text-jury-disapprove font-medium transition-colors border border-jury-disapprove/30"
               >
                 Delete Account
               </button>
-            </div>
+            </motion.div>
 
+            {/* Saving Indicator */}
             {saveMutation.isPending && (
-              <div className="text-center text-sm text-gray-400">
-                <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
-                Saving...
-              </div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-jury-surface border border-jury-surface-light shadow-lg flex items-center gap-2"
+              >
+                <Loader2 className="w-4 h-4 animate-spin text-jury-primary" />
+                <span className="text-sm text-gray-300">Saving...</span>
+              </motion.div>
             )}
           </>
         )}
