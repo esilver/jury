@@ -1,10 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useQuery } from '@tanstack/react-query'
 import { Header } from '@/components/layout/Header'
 import { useLocation } from '@/contexts/LocationContext'
-import { Loader2, MapPin, Users, ZoomIn, ZoomOut, Save } from 'lucide-react'
+import { Loader2, MapPin, ZoomIn, ZoomOut, Save } from 'lucide-react'
+
+// Dynamic import for Leaflet (no SSR)
+const JuryMap = dynamic(() => import('@/components/map/JuryMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center bg-jury-surface-light">
+      <Loader2 className="w-8 h-8 animate-spin text-jury-primary" />
+    </div>
+  ),
+})
 
 interface HeatmapData {
   points: {
@@ -140,11 +151,12 @@ export default function MapPage() {
               <Loader2 className="w-8 h-8 animate-spin text-jury-primary" />
             </div>
           ) : (
-            <SimpleHeatmapView
+            <JuryMap
               centerLat={latitude!}
               centerLng={longitude!}
               radiusMiles={radiusMiles}
-              data={data}
+              points={data?.points || []}
+              userCount={data?.stats.userCount || 0}
             />
           )}
         </div>
@@ -220,95 +232,6 @@ export default function MapPage() {
                 Save
               </button>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// Simple CSS-based heatmap visualization (placeholder for a real map library)
-function SimpleHeatmapView({
-  centerLat,
-  centerLng,
-  radiusMiles,
-  data,
-}: {
-  centerLat: number
-  centerLng: number
-  radiusMiles: number
-  data: HeatmapData | null | undefined
-}) {
-  const points = data?.points || []
-
-  return (
-    <div className="relative w-full h-full bg-jury-surface-light">
-      {/* Background grid */}
-      <div
-        className="absolute inset-0 opacity-20"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-        }}
-      />
-
-      {/* Center marker (user location) */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-        <div className="w-4 h-4 rounded-full bg-jury-primary border-2 border-white shadow-lg" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full border-2 border-jury-primary/50 animate-ping" />
-      </div>
-
-      {/* Radius circle */}
-      <div
-        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed border-jury-primary/30"
-        style={{
-          width: `${Math.min(90, radiusMiles * 3)}%`,
-          height: `${Math.min(90, radiusMiles * 3)}%`,
-        }}
-      />
-
-      {/* Heatmap points */}
-      {points.map((point, index) => {
-        // Convert lat/lng offset to position
-        const latDiff = point.latitude - centerLat
-        const lngDiff = point.longitude - centerLng
-        const x = 50 + lngDiff * 500 // Scale factor
-        const y = 50 - latDiff * 500 // Y is inverted
-
-        // Color based on value (-1 to 1)
-        const color =
-          point.value > 0
-            ? `rgba(34, 197, 94, ${0.3 + Math.abs(point.value) * 0.7})`
-            : `rgba(239, 68, 68, ${0.3 + Math.abs(point.value) * 0.7})`
-
-        // Size based on density
-        const size = 10 + point.density * 5
-
-        return (
-          <div
-            key={index}
-            className="absolute rounded-full blur-sm"
-            style={{
-              left: `${Math.max(5, Math.min(95, x))}%`,
-              top: `${Math.max(5, Math.min(95, y))}%`,
-              width: `${size}px`,
-              height: `${size}px`,
-              backgroundColor: color,
-              transform: 'translate(-50%, -50%)',
-            }}
-          />
-        )
-      })}
-
-      {/* No data placeholder */}
-      {points.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-          <div className="text-center">
-            <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No vote data in this area yet</p>
           </div>
         </div>
       )}
